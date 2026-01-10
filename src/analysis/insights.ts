@@ -42,8 +42,8 @@ export const CORRELATION_PAIRS: Array<{
     yLabel: 'Revenue PPD',
     businessQuestion: 'Does higher skilled mix drive revenue?',
     insightTemplate: {
-      positive: 'Higher skilled mix is associated with increased revenue per patient day',
-      negative: 'Skilled mix changes show inverse relationship with revenue - investigate payer contracts'
+      positive: 'When skilled mix goes up, revenue tends to go up too. More skilled patients bring in more money per day.',
+      negative: 'Skilled mix and revenue are moving in opposite directions. This is unusual and worth looking into.'
     }
   },
   {
@@ -53,8 +53,8 @@ export const CORRELATION_PAIRS: Array<{
     yLabel: 'Operating Margin',
     businessQuestion: 'Does payer mix impact profitability?',
     insightTemplate: {
-      positive: 'Skilled payer mix positively impacts operating margins',
-      negative: 'Higher skilled mix correlates with lower margins - review skilled care cost structure'
+      positive: 'More skilled patients means better profits. The extra revenue from skilled care is paying off.',
+      negative: 'More skilled patients but lower profits. The cost of caring for skilled patients may be too high.'
     }
   },
   {
@@ -64,8 +64,8 @@ export const CORRELATION_PAIRS: Array<{
     yLabel: 'Nursing Cost PPD',
     businessQuestion: 'Hours to cost relationship efficiency',
     insightTemplate: {
-      positive: 'Nursing hours directly track with costs as expected',
-      negative: 'Unusual disconnect between nursing hours and costs - check wage rates or coding'
+      positive: 'More nursing hours means higher costs, which is normal. Staffing costs are predictable.',
+      negative: 'Nursing hours and costs are not moving together. Check if pay rates changed or if hours are being recorded correctly.'
     }
   },
   {
@@ -75,8 +75,8 @@ export const CORRELATION_PAIRS: Array<{
     yLabel: 'Operating Margin',
     businessQuestion: 'Agency labor impact on margins',
     insightTemplate: {
-      positive: 'Contract labor usage shows unexpected positive margin relationship',
-      negative: 'Contract labor negatively impacts operating margins - prioritize permanent staffing'
+      positive: 'Using more agency staff but profits are still good. This is uncommon but working here.',
+      negative: 'More agency staff means lower profits. Agency nurses cost more, so hiring permanent staff could help.'
     }
   },
   {
@@ -86,8 +86,8 @@ export const CORRELATION_PAIRS: Array<{
     yLabel: 'Skilled Margin',
     businessQuestion: 'Therapy efficiency impact',
     insightTemplate: {
-      positive: 'Higher therapy costs associated with better skilled margins - value-driven care',
-      negative: 'Therapy costs drag on skilled margins - review therapy efficiency and contracts'
+      positive: 'Spending more on therapy is leading to better skilled profits. The investment is paying off.',
+      negative: 'Therapy costs are eating into profits. Look at whether therapy is being used efficiently.'
     }
   },
   {
@@ -97,8 +97,8 @@ export const CORRELATION_PAIRS: Array<{
     yLabel: 'Operating Margin',
     businessQuestion: 'Volume impact on profitability',
     insightTemplate: {
-      positive: 'Higher occupancy drives better margins - focus on census growth',
-      negative: 'Occupancy not translating to margin improvement - review cost structure'
+      positive: 'More beds filled means better profits. Growing census should be a priority.',
+      negative: 'Filling more beds but not making more money. Costs may be rising faster than revenue.'
     }
   }
 ];
@@ -157,11 +157,15 @@ export function generateCorrelationInsights(
       type = 'opportunity';
     }
 
+    // Simplified strength description
+    const strengthDesc = strength === 'strong' ? 'clear pattern' :
+                         strength === 'moderate' ? 'noticeable pattern' : 'slight pattern';
+
     insights.push({
       id: `insight-${++insightCounter}`,
       type,
       title: generateInsightTitle(corr, strength, isPositive),
-      description: `${template} (r=${r.toFixed(2)}, ${strength} correlation)`,
+      description: `${template} This is a ${strengthDesc} in the data.`,
       relatedKpis: [corr.xKpi, corr.yKpi],
       priority,
       actionable
@@ -179,25 +183,26 @@ function generateInsightTitle(
   strength: string,
   isPositive: boolean
 ): string {
-  const strengthLabel = strength.charAt(0).toUpperCase() + strength.slice(1);
-  const directionLabel = isPositive ? 'Positive' : 'Negative';
-
   const shortLabels: Record<string, string> = {
     'snf_skilled_mix_pct': 'Skilled Mix',
     'snf_total_revenue_ppd': 'Revenue',
-    'snf_operating_margin_pct': 'Margin',
+    'snf_operating_margin_pct': 'Profits',
     'snf_nursing_hppd': 'Nursing Hours',
     'snf_nursing_cost_ppd': 'Nursing Cost',
-    'snf_contract_labor_pct_nursing': 'Contract Labor',
+    'snf_contract_labor_pct_nursing': 'Agency Staff',
     'snf_therapy_cost_psd': 'Therapy Cost',
-    'snf_skilled_margin_pct': 'Skilled Margin',
+    'snf_skilled_margin_pct': 'Skilled Profits',
     'snf_occupancy_pct': 'Occupancy'
   };
 
   const xShort = shortLabels[corr.xKpi] || corr.xLabel;
   const yShort = shortLabels[corr.yKpi] || corr.yLabel;
 
-  return `${strengthLabel} ${directionLabel}: ${xShort} -> ${yShort}`;
+  if (isPositive) {
+    return `${xShort} and ${yShort} Move Together`;
+  } else {
+    return `${xShort} Up, ${yShort} Down`;
+  }
 }
 
 export function generateTrendInsights(
