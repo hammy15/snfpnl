@@ -16,6 +16,7 @@ import { PeriodComparison } from './components/PeriodComparison';
 import { AlertsDashboard } from './components/AlertsDashboard';
 import { FacilityDirectory } from './components/FacilityDirectory';
 import { AIAssistant } from './components/AIAssistant';
+import { PasswordGate } from './components/PasswordGate';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -170,7 +171,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <FavoritesProvider>
-          <AppContent />
+          <PasswordGate>
+            <AppContent />
+          </PasswordGate>
         </FavoritesProvider>
       </ThemeProvider>
     </QueryClientProvider>
