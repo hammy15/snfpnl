@@ -533,7 +533,7 @@ function getTrendDirection(trends: TrendData[]): { direction: 'improving' | 'dec
   };
 }
 
-// Simulated AI response generator (replace with actual Claude API call)
+// AI response generator using Claude API
 async function generateAIResponse(
   userInput: string,
   settings: BotSettings,
@@ -544,10 +544,82 @@ async function generateAIResponse(
   marginTrends: TrendData[],
   facilities: Facility[]
 ): Promise<string> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 1200));
+  // Build context for Claude
+  const context: any = {
+    periodId,
+    personality: settings.personality,
+  };
 
+  if (selectedFacility) {
+    const margin = getKPIValue(facilityKPIs, 'snf_operating_margin_pct');
+    const skilledMix = getKPIValue(facilityKPIs, 'snf_skilled_mix_pct');
+    const revenuePPD = getKPIValue(facilityKPIs, 'snf_total_revenue_ppd');
+    const expensePPD = getKPIValue(facilityKPIs, 'snf_total_cost_ppd');
+    const contractLabor = getKPIValue(facilityKPIs, 'snf_contract_labor_pct_nursing');
+
+    context.facilityData = {
+      name: selectedFacility.name,
+      state: selectedFacility.state,
+      setting: selectedFacility.setting,
+      margin,
+      skilledMix,
+      revenuePPD,
+      expensePPD,
+      contractLabor,
+      trend: getTrendDirection(marginTrends)
+    };
+  }
+
+  // Add portfolio summary
+  const snfFacilities = facilities.filter(f => f.setting === 'SNF');
+  context.portfolioSummary = {
+    totalFacilities: facilities.length,
+    snfCount: snfFacilities.length,
+    states: [...new Set(facilities.map(f => f.state))].length
+  };
+
+  try {
+    const response = await fetch('https://snfpnl.onrender.com/api/ai/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userInput, context })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'AI request failed');
+    }
+
+    const data = await response.json();
+    return data.reply;
+  } catch (error: any) {
+    console.error('AI API error:', error);
+    // Fall back to simulated response
+    return generateFallbackResponse(userInput, selectedFacility, facilityKPIs, allKPIs, marginTrends, facilities, settings, periodId);
+  }
+}
+
+// Fallback response generator when API is unavailable
+function generateFallbackResponse(
+  userInput: string,
+  selectedFacility: Facility | null,
+  facilityKPIs: KPIData[],
+  allKPIs: any[],
+  marginTrends: TrendData[],
+  facilities: Facility[],
+  settings?: BotSettings,
+  periodId?: string
+): string {
   const input = userInput.toLowerCase();
+
+  // Default settings if not provided
+  const s = settings || {
+    personality: 'professional' as const,
+    focusAreas: ['margins', 'labor', 'revenue'],
+    alertThresholds: { operatingMargin: 5, contractLabor: 15, skilledMix: 15, occupancy: 85, expensePPD: 400 },
+    enabledModules: { kpiAnalysis: true, trendAnalysis: true, peerComparison: true, recommendations: true, marketIntel: true }
+  };
+  const period = periodId || '2025-11';
 
   // Get facility-specific data if available
   const margin = getKPIValue(facilityKPIs, 'snf_operating_margin_pct');
@@ -580,7 +652,7 @@ async function generateAIResponse(
 
 ---
 
-**CURRENT PERFORMANCE (${periodId}):**
+**CURRENT PERFORMANCE (${period}):**
 
 | Metric | Value | Status |
 |--------|-------|--------|
@@ -777,13 +849,13 @@ Want me to draft an email to the leader with these suggestions?`;
 
 ---
 
-Subject: Checking in on ${periodId} results + a few thoughts
+Subject: Checking in on ${period} results + a few thoughts
 
 Hey [Name],
 
 Hope you're doing well! Wanted to reach out after looking at this month's numbers. Got a few minutes to chat sometime this week?
 
-Looking at ${periodId}, I see the building is running at ${formatValue(margin, 'percentage')} EBITDAR margin, which is ${marginStatus}${trendNote ? ` - the trend lately has been ${trendInfo.direction}, ${trendNote}` : ''}.
+Looking at ${period}, I see the building is running at ${formatValue(margin, 'percentage')} EBITDAR margin, which is ${marginStatus}${trendNote ? ` - the trend lately has been ${trendInfo.direction}, ${trendNote}` : ''}.
 
 A few things caught my eye:
 
@@ -827,7 +899,7 @@ P.S. - ${margin >= 10 ? "Seriously, great job this month. Make sure you're recog
 
 ---
 
-Subject: Quick ${periodId} update + a few thoughts
+Subject: Quick ${period} update + a few thoughts
 
 Hey team,
 
@@ -864,7 +936,7 @@ Talk soon,
   if (input.includes('benchmark') || input.includes('industry')) {
     // If facility is selected, show facility-specific benchmarks
     if (selectedFacility && margin !== null) {
-      return `**${selectedFacility.name} vs Industry Benchmarks (${periodId}):**
+      return `**${selectedFacility.name} vs Industry Benchmarks (${period}):**
 
 | Metric | Your Value | Benchmark | Status |
 |--------|-----------|-----------|--------|
@@ -902,7 +974,7 @@ Want me to suggest specific improvements to close these gaps?`;
     const avgExpense = expenseData.length > 0 ? expenseData.reduce((sum, k) => sum + k.value, 0) / expenseData.length : 0;
     const avgContract = contractData.length > 0 ? contractData.reduce((sum, k) => sum + k.value, 0) / contractData.length : 0;
 
-    return `**Portfolio vs Industry Benchmarks for ${periodId}:**
+    return `**Portfolio vs Industry Benchmarks for ${period}:**
 
 **Operating Margin**
 - Portfolio Average: ${formatValue(avgMargin, 'percentage')}
@@ -969,7 +1041,7 @@ Want me to set up some intro emails between these teams? Sometimes just getting 
 
   // Trend analysis
   if (input.includes('trend') || input.includes('analysis') || input.includes('opportunit')) {
-    return `**Comprehensive Trend Analysis for ${periodId}:**
+    return `**Comprehensive Trend Analysis for ${period}:**
 
 **6-MONTH TRENDS:**
 
@@ -1021,26 +1093,26 @@ Would you like me to dive deeper into any of these trends or prepare specific ac
 
   // Alert responses
   if (input.includes('attention') || input.includes('alert') || input.includes('concern')) {
-    return `Here's what's popping up based on your thresholds for ${periodId}:
+    return `Here's what's popping up based on your thresholds for ${period}:
 
-**Margin Issues** (below ${settings.alertThresholds.operatingMargin}%):
+**Margin Issues** (below ${s.alertThresholds.operatingMargin}%):
 - Creekside (OR): -2.3% - this one's been struggling for a few months now
 - Payette (ID): 1.8% - down from 4% last month, worth a check-in
 - Colfax (WA): 3.2% - slowly improving actually, was at 1% two months ago
 
-**Staffing Red Flags** (contract labor above ${settings.alertThresholds.contractLabor}%):
+**Staffing Red Flags** (contract labor above ${s.alertThresholds.contractLabor}%):
 - Hudson Bay (WA): 22% - seems stuck here, what's going on with recruiting?
 - Brookfield (WA): 18% - market's tough but this is high
 
-**Low Skilled Mix** (below ${settings.alertThresholds.skilledMix}%):
+**Low Skilled Mix** (below ${s.alertThresholds.skilledMix}%):
 - Weiser (ID): 11% - have they lost a referral source?
 - Mountain View (MT): 13% - was at 18% six months ago, trending wrong way
 
-**Occupancy Concerns** (below ${settings.alertThresholds.occupancy}%):
+**Occupancy Concerns** (below ${s.alertThresholds.occupancy}%):
 - Riverside (OR): 78% - census has been soft all quarter
 - Valley View (WA): 82% - down from 89% last month
 
-**High Expenses** (PPD above $${settings.alertThresholds.expensePPD}):
+**High Expenses** (PPD above $${s.alertThresholds.expensePPD}):
 - Meadowbrook (ID): $425 PPD - what's driving this? Supply costs?
 - Sunnydale (MT): $410 PPD - nursing overtime maybe?
 
@@ -1055,7 +1127,7 @@ Want me to draft some check-in emails? Or pull together a peer comparison for an
   }
 
   if (input.includes('top') || input.includes('best') || input.includes('performer')) {
-    return `Here are your rockstars for ${periodId}:
+    return `Here are your rockstars for ${period}:
 
 **Shaw (ID) - 18.0% margin**
 These guys are on fire. Up from 16.2% last month. Sarah's team has figured out the skilled mix game - they're at 24%, which is driving a ton of that performance. Their expense PPD is also crazy low at $310. I'd love to know what they're doing on the staffing side.
@@ -1078,7 +1150,7 @@ Shaw especially deserves some recognition. Maybe a shoutout in the next company 
   }
 
   if (input.includes('summary') || input.includes('overview')) {
-    return `Quick snapshot for ${periodId}:
+    return `Quick snapshot for ${period}:
 
 **The big picture:**
 59 buildings, 5 states. Portfolio margin is sitting at 7.8%, which is decent but we've been higher. Total revenue came in at $52.4M.
@@ -1105,9 +1177,9 @@ Want me to pull up details on the struggling buildings? Or draft something for l
   }
 
   if (input.includes('margin') || input.includes('profitability')) {
-    return `**Margin Analysis for ${periodId}:**
+    return `**Margin Analysis for ${period}:**
 
-The portfolio average operating margin is 7.8%, which is ${settings.alertThresholds.operatingMargin <= 7.8 ? 'above' : 'below'} your target threshold of ${settings.alertThresholds.operatingMargin}%.
+The portfolio average operating margin is 7.8%, which is ${s.alertThresholds.operatingMargin <= 7.8 ? 'above' : 'below'} your target threshold of ${s.alertThresholds.operatingMargin}%.
 
 **Margin Distribution:**
 - Above 10%: 18 facilities (30%)
@@ -1143,5 +1215,5 @@ Just ask in plain English - "who's struggling?", "draft an email about Creekside
 
 Or try one of the quick buttons above to get started.
 
-Currently watching: ${settings.focusAreas.join(', ')}`;
+Currently watching: ${s.focusAreas.join(', ')}`;
 }

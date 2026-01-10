@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import Database from 'better-sqlite3';
+import Anthropic from '@anthropic-ai/sdk';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -43,6 +44,11 @@ try {
   console.error('Failed to connect to database:', err);
   process.exit(1);
 }
+
+// Claude API client
+const anthropic = process.env.ANTHROPIC_API_KEY
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  : null;
 
 // Types
 interface Facility {
@@ -6132,6 +6138,58 @@ function generateEnhancedPortfolioPacket(periodId: string, database: any): any {
     ]
   };
 }
+
+// AI Chat endpoint using Claude
+app.post('/api/ai/chat', async (req, res) => {
+  if (!anthropic) {
+    return res.status(503).json({ error: 'AI service not configured. Set ANTHROPIC_API_KEY.' });
+  }
+
+  const { message, context } = req.body;
+
+  if (!message) {
+    return res.status(400).json({ error: 'Message is required' });
+  }
+
+  try {
+    // Build context from facility data
+    let systemPrompt = `You are SNFPNL AI, a financial analyst assistant for skilled nursing facility (SNF) and senior living portfolio management. You help users understand financial performance, KPIs, and trends.
+
+Key metrics you analyze:
+- Operating Margin: Target is 12%+, excellent is 20%+
+- Skilled Mix: Higher generally means better reimbursement
+- Contract Labor %: Lower is better, high indicates staffing challenges
+- Nursing Hours PPD: Industry standard around 3.5-4.0
+- Revenue PPD and Cost PPD: Key profitability drivers
+
+Be concise, data-driven, and actionable in your responses. Format numbers with appropriate precision (1 decimal for percentages, whole numbers for currency).`;
+
+    if (context?.facilityData) {
+      systemPrompt += `\n\nCurrent facility context:\n${JSON.stringify(context.facilityData, null, 2)}`;
+    }
+
+    if (context?.portfolioSummary) {
+      systemPrompt += `\n\nPortfolio summary:\n${JSON.stringify(context.portfolioSummary, null, 2)}`;
+    }
+
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [
+        { role: 'user', content: message }
+      ]
+    });
+
+    const textContent = response.content.find(block => block.type === 'text');
+    const reply = textContent ? textContent.text : 'No response generated.';
+
+    res.json({ reply });
+  } catch (err: any) {
+    console.error('Claude API error:', err);
+    res.status(500).json({ error: 'Failed to get AI response', details: err.message });
+  }
+});
 
 // Start server
 app.listen(PORT, () => {
