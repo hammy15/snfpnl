@@ -50,7 +50,7 @@ export function BreakEvenAnalysis({ facilityId, periodId }: BreakEvenAnalysisPro
   const { data, isLoading, error } = useQuery<BreakEvenData>({
     queryKey: ['break-even', facilityId, periodId],
     queryFn: async () => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/break-even/${facilityId}/${periodId}`);
+      const response = await fetch(`https://snfpnl.onrender.com/api/break-even/${facilityId}/${periodId}`);
       if (!response.ok) throw new Error('Failed to fetch break-even data');
       return response.json();
     },

@@ -58,7 +58,7 @@ export function AnnotationSystem({ facilityId, periodId, kpiId }: AnnotationSyst
       });
       if (kpiId) params.append('kpiId', kpiId);
 
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/annotations?${params}`);
+      const response = await fetch(`https://snfpnl.onrender.com/api/annotations?${params}`);
       if (!response.ok) throw new Error('Failed to fetch annotations');
       return response.json();
     },
@@ -66,7 +66,7 @@ export function AnnotationSystem({ facilityId, periodId, kpiId }: AnnotationSyst
 
   const createMutation = useMutation({
     mutationFn: async (annotation: Partial<Annotation>) => {
-      const response = await fetch('https://snfpnl-production.up.railway.app/api/annotations', {
+      const response = await fetch('https://snfpnl.onrender.com/api/annotations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...annotation, facilityId, periodId, kpiId })
@@ -83,7 +83,7 @@ export function AnnotationSystem({ facilityId, periodId, kpiId }: AnnotationSyst
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/annotations/${id}`, {
+      const response = await fetch(`https://snfpnl.onrender.com/api/annotations/${id}`, {
         method: 'DELETE'
       });
       if (!response.ok) throw new Error('Failed to delete annotation');
@@ -93,7 +93,7 @@ export function AnnotationSystem({ facilityId, periodId, kpiId }: AnnotationSyst
 
   const togglePinMutation = useMutation({
     mutationFn: async ({ id, isPinned }: { id: string; isPinned: boolean }) => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/annotations/${id}`, {
+      const response = await fetch(`https://snfpnl.onrender.com/api/annotations/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isPinned })

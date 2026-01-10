@@ -73,7 +73,7 @@ export function AutomatedReports() {
   const { data, isLoading, error } = useQuery<ReportsResponse>({
     queryKey: ['scheduled-reports'],
     queryFn: async () => {
-      const response = await fetch('https://snfpnl-production.up.railway.app/api/scheduled-reports');
+      const response = await fetch('https://snfpnl.onrender.com/api/scheduled-reports');
       if (!response.ok) throw new Error('Failed to fetch reports');
       return response.json();
     },
@@ -81,7 +81,7 @@ export function AutomatedReports() {
 
   const createReportMutation = useMutation({
     mutationFn: async (report: Partial<ScheduledReport>) => {
-      const response = await fetch('https://snfpnl-production.up.railway.app/api/scheduled-reports', {
+      const response = await fetch('https://snfpnl.onrender.com/api/scheduled-reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(report),
@@ -109,7 +109,7 @@ export function AutomatedReports() {
 
   const updateReportMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ScheduledReport> }) => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/scheduled-reports/${id}`, {
+      const response = await fetch(`https://snfpnl.onrender.com/api/scheduled-reports/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
@@ -124,7 +124,7 @@ export function AutomatedReports() {
 
   const deleteReportMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/scheduled-reports/${id}`, {
+      const response = await fetch(`https://snfpnl.onrender.com/api/scheduled-reports/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete report');
@@ -137,7 +137,7 @@ export function AutomatedReports() {
 
   const sendNowMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/scheduled-reports/${id}/send`, {
+      const response = await fetch(`https://snfpnl.onrender.com/api/scheduled-reports/${id}/send`, {
         method: 'POST',
       });
       if (!response.ok) throw new Error('Failed to send report');

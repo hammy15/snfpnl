@@ -78,7 +78,7 @@ export function SmartAlerts({ periodId, facilityId, onFacilityClick }: SmartAler
       if (periodId) params.append('periodId', periodId);
       if (facilityId) params.append('facilityId', facilityId);
 
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/smart-alerts?${params}`);
+      const response = await fetch(`https://snfpnl.onrender.com/api/smart-alerts?${params}`);
       if (!response.ok) throw new Error('Failed to fetch alerts');
       return response.json();
     },

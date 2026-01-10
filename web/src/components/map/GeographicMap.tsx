@@ -80,7 +80,7 @@ export function GeographicMap({ periodId, onFacilityClick }: GeographicMapProps)
   const { data, isLoading, error } = useQuery<MapDataResponse>({
     queryKey: ['map-data', periodId],
     queryFn: async () => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/map-data/${periodId}`);
+      const response = await fetch(`https://snfpnl.onrender.com/api/map-data/${periodId}`);
       if (!response.ok) throw new Error('Failed to fetch map data');
       return response.json();
     },

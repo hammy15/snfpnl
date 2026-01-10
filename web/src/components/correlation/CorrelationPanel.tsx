@@ -42,7 +42,7 @@ interface CorrelationsResponse {
 
 async function fetchCorrelations(facilityId: string, periodId: string): Promise<CorrelationsResponse> {
   const res = await fetch(
-    `https://snfpnl-production.up.railway.app/api/performance/correlations/${facilityId}?periodId=${periodId}`
+    `https://snfpnl.onrender.com/api/performance/correlations/${facilityId}?periodId=${periodId}`
   );
   if (!res.ok) throw new Error('Failed to fetch correlations');
   return res.json();

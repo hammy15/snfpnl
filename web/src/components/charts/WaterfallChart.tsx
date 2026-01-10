@@ -36,7 +36,7 @@ export function WaterfallChart({ facilityId, periodId }: WaterfallChartProps) {
   const { data, isLoading, error } = useQuery<WaterfallData>({
     queryKey: ['waterfall', facilityId, periodId],
     queryFn: async () => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/waterfall/${facilityId}/${periodId}`);
+      const response = await fetch(`https://snfpnl.onrender.com/api/waterfall/${facilityId}/${periodId}`);
       if (!response.ok) throw new Error('Failed to fetch waterfall data');
       return response.json();
     },

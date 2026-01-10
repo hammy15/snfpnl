@@ -60,7 +60,7 @@ export function BenchmarkComparison({ facilityId, periodId }: BenchmarkCompariso
   const { data, isLoading, error } = useQuery<BenchmarkData>({
     queryKey: ['benchmark', facilityId, periodId],
     queryFn: async () => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/benchmark/${facilityId}/${periodId}`);
+      const response = await fetch(`https://snfpnl.onrender.com/api/benchmark/${facilityId}/${periodId}`);
       if (!response.ok) throw new Error('Failed to fetch benchmark data');
       return response.json();
     },

@@ -77,19 +77,19 @@ const DEFAULT_SETTINGS: BotSettings = {
 
 // API fetchers
 async function fetchFacilityKPIs(facilityId: string, periodId: string): Promise<KPIData[]> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/kpis/${facilityId}/${periodId}`);
+  const res = await fetch(`https://snfpnl.onrender.com/api/kpis/${facilityId}/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch KPIs');
   return res.json();
 }
 
 async function fetchAllKPIs(periodId: string): Promise<any[]> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/kpis/all/${periodId}`);
+  const res = await fetch(`https://snfpnl.onrender.com/api/kpis/all/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch all KPIs');
   return res.json();
 }
 
 async function fetchTrends(facilityId: string, kpiId: string): Promise<TrendData[]> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/trends/${facilityId}/${kpiId}`);
+  const res = await fetch(`https://snfpnl.onrender.com/api/trends/${facilityId}/${kpiId}`);
   if (!res.ok) throw new Error('Failed to fetch trends');
   return res.json();
 }

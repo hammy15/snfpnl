@@ -44,7 +44,7 @@ export function PeerComparison({ facilityId, periodId }: PeerComparisonProps) {
   const { data, isLoading, error } = useQuery<PeerComparisonResponse>({
     queryKey: ['peer-comparison', facilityId, periodId],
     queryFn: async () => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/peer-comparison/${facilityId}/${periodId}`);
+      const response = await fetch(`https://snfpnl.onrender.com/api/peer-comparison/${facilityId}/${periodId}`);
       if (!response.ok) throw new Error('Failed to fetch peer comparison');
       return response.json();
     },

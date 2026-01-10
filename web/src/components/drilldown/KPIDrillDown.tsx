@@ -42,7 +42,7 @@ export function KPIDrillDown({ facilityId, periodId }: KPIDrillDownProps) {
   const { data, isLoading, error } = useQuery<DrillDownResponse>({
     queryKey: ['kpi-drilldown', facilityId, periodId, selectedKpi],
     queryFn: async () => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/kpi-drilldown/${facilityId}/${periodId}/${selectedKpi}`);
+      const response = await fetch(`https://snfpnl.onrender.com/api/kpi-drilldown/${facilityId}/${periodId}/${selectedKpi}`);
       if (!response.ok) throw new Error('Failed to fetch drill-down data');
       return response.json();
     },

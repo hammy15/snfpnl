@@ -70,7 +70,7 @@ export function AnomalyDetection({ facilityId, periodId }: AnomalyDetectionProps
       const params = new URLSearchParams({ periodId });
       if (facilityId) params.append('facilityId', facilityId.toString());
 
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/anomaly-detection?${params}`);
+      const response = await fetch(`https://snfpnl.onrender.com/api/anomaly-detection?${params}`);
       if (!response.ok) throw new Error('Failed to fetch anomalies');
       return response.json();
     },

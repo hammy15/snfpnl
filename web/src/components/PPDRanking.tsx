@@ -71,7 +71,7 @@ const METRICS_BY_SETTING: Record<SettingFilter, MetricConfig[]> = {
 };
 
 async function fetchAllKPIs(periodId: string): Promise<KPIData[]> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/kpis/all/${periodId}`);
+  const res = await fetch(`https://snfpnl.onrender.com/api/kpis/all/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch KPIs');
   return res.json();
 }

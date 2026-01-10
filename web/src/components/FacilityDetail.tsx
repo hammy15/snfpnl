@@ -64,25 +64,25 @@ interface TrendData {
 }
 
 async function fetchFacility(id: string): Promise<Facility> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/facilities/${id}`);
+  const res = await fetch(`https://snfpnl.onrender.com/api/facilities/${id}`);
   if (!res.ok) throw new Error('Failed to fetch facility');
   return res.json();
 }
 
 async function fetchKPIs(facilityId: string, periodId: string): Promise<KPIResult[]> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/kpis/${facilityId}/${periodId}`);
+  const res = await fetch(`https://snfpnl.onrender.com/api/kpis/${facilityId}/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch KPIs');
   return res.json();
 }
 
 async function fetchAnomalies(facilityId: string, periodId: string): Promise<Anomaly[]> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/anomalies/${facilityId}/${periodId}`);
+  const res = await fetch(`https://snfpnl.onrender.com/api/anomalies/${facilityId}/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch anomalies');
   return res.json();
 }
 
 async function fetchTrends(facilityId: string, kpiId: string): Promise<TrendData[]> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/trends/${facilityId}/${kpiId}`);
+  const res = await fetch(`https://snfpnl.onrender.com/api/trends/${facilityId}/${kpiId}`);
   if (!res.ok) throw new Error('Failed to fetch trends');
   return res.json();
 }
@@ -98,7 +98,7 @@ interface FacilityFinancials {
 }
 
 async function fetchFacilityFinancials(facilityId: string, periodId: string): Promise<FacilityFinancials | null> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/financials/summary/${periodId}`);
+  const res = await fetch(`https://snfpnl.onrender.com/api/financials/summary/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch financials');
   const data = await res.json();
   return data.facilities?.find((f: FacilityFinancials) => f.facility_id === facilityId) || null;

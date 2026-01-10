@@ -38,7 +38,7 @@ export function WhatIfScenario({ facilityId, periodId }: WhatIfScenarioProps) {
 
   const scenarioMutation = useMutation<ScenarioResult, Error, ScenarioInputs>({
     mutationFn: async (scenarioInputs) => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/what-if/${facilityId}/${periodId}`, {
+      const response = await fetch(`https://snfpnl.onrender.com/api/what-if/${facilityId}/${periodId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(scenarioInputs),

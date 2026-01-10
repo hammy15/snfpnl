@@ -48,7 +48,7 @@ interface T12MData {
 
 async function fetchT12MData(facilityId: string, periodId: string): Promise<T12MData> {
   const res = await fetch(
-    `https://snfpnl-production.up.railway.app/api/performance/t12m/${facilityId}?periodId=${periodId}`
+    `https://snfpnl.onrender.com/api/performance/t12m/${facilityId}?periodId=${periodId}`
   );
   if (!res.ok) throw new Error('Failed to fetch T12M data');
   return res.json();

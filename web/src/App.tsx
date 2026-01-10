@@ -38,7 +38,7 @@ interface Facility {
 }
 
 async function fetchFacilities(): Promise<Facility[]> {
-  const res = await fetch('https://snfpnl-production.up.railway.app/api/facilities');
+  const res = await fetch('https://snfpnl.onrender.com/api/facilities');
   if (!res.ok) throw new Error('Failed to fetch facilities');
   return res.json();
 }

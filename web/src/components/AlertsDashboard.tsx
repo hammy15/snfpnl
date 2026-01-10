@@ -31,7 +31,7 @@ interface Alert {
 
 // Fetch alerts from real API
 async function fetchAlerts(periodId: string): Promise<Alert[]> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/portfolio-alerts/${periodId}`);
+  const res = await fetch(`https://snfpnl.onrender.com/api/portfolio-alerts/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch alerts');
   return res.json();
 }

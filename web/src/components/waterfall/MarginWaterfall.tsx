@@ -33,7 +33,7 @@ export function MarginWaterfall({ facilityId, periodId }: MarginWaterfallProps) 
   const { data, isLoading, error } = useQuery<WaterfallResponse>({
     queryKey: ['margin-waterfall', facilityId, periodId],
     queryFn: async () => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/margin-waterfall/${facilityId}/${periodId}`);
+      const response = await fetch(`https://snfpnl.onrender.com/api/margin-waterfall/${facilityId}/${periodId}`);
       if (!response.ok) throw new Error('Failed to fetch waterfall data');
       return response.json();
     },

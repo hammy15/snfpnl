@@ -54,7 +54,7 @@ interface SummaryData {
 }
 
 async function fetchSummary(periodId: string): Promise<SummaryData> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/executive-summary/${periodId}`);
+  const res = await fetch(`https://snfpnl.onrender.com/api/executive-summary/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch summary');
   return res.json();
 }
@@ -67,7 +67,7 @@ export function ExecutiveSummary({ periodId, onFacilitySelect }: ExecutiveSummar
 
   const handleExport = (format: 'pdf' | 'csv') => {
     // In a real app, this would call a backend endpoint to generate the export
-    const url = `https://snfpnl-production.up.railway.app/api/export/summary/${periodId}?format=${format}`;
+    const url = `https://snfpnl.onrender.com/api/export/summary/${periodId}?format=${format}`;
     window.open(url, '_blank');
   };
 

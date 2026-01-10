@@ -36,7 +36,7 @@ export function NaturalLanguageQuery({ onFacilityClick }: NaturalLanguageQueryPr
     setResults(null);
 
     try {
-      const response = await fetch('https://snfpnl-production.up.railway.app/api/natural-query', {
+      const response = await fetch('https://snfpnl.onrender.com/api/natural-query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: queryText }),

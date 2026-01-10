@@ -130,7 +130,7 @@ export function ExcelExport({ facilityId, periodId, onExport }: ExcelExportProps
       if (facilityId) params.append('facilityId', String(facilityId));
       if (periodId) params.append('periodId', periodId);
 
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/export/excel?${params}`);
+      const response = await fetch(`https://snfpnl.onrender.com/api/export/excel?${params}`);
 
       if (!response.ok) throw new Error('Export failed');
 
@@ -421,7 +421,7 @@ export function QuickExport({ facilityId, periodId }: { facilityId: number; peri
     setIsExporting(true);
     try {
       const response = await fetch(
-        `https://snfpnl-production.up.railway.app/api/export/facility/${facilityId}?periodId=${periodId}&format=xlsx`
+        `https://snfpnl.onrender.com/api/export/facility/${facilityId}?periodId=${periodId}&format=xlsx`
       );
 
       if (!response.ok) throw new Error('Export failed');

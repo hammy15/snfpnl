@@ -28,7 +28,7 @@ export function ExecutiveSummary({ facilityId, periodId }: ExecutiveSummaryProps
   const { data, isLoading, error } = useQuery<ExecutiveSummaryResponse>({
     queryKey: ['executive-summary', facilityId, periodId],
     queryFn: async () => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/executive-summary/${facilityId}/${periodId}`);
+      const response = await fetch(`https://snfpnl.onrender.com/api/executive-summary/${facilityId}/${periodId}`);
       if (!response.ok) throw new Error('Failed to fetch executive summary');
       return response.json();
     },

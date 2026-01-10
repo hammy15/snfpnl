@@ -40,7 +40,7 @@ export function NarrativeReport({ context, periodId, facilityId, data, title }: 
     setError(null);
 
     try {
-      const response = await fetch('https://snfpnl-production.up.railway.app/api/narrative/generate', {
+      const response = await fetch('https://snfpnl.onrender.com/api/narrative/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -320,7 +320,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
 
   // Fetch available options on mount
   useEffect(() => {
-    fetch('https://snfpnl-production.up.railway.app/api/narrative/packet-options')
+    fetch('https://snfpnl.onrender.com/api/narrative/packet-options')
       .then(res => res.json())
       .then(data => setOptions(data))
       .catch(err => console.error('Failed to fetch packet options:', err));
@@ -358,7 +358,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
       if (scope === 'state') requestBody.stateName = selectedState;
       if (scope === 'opco') requestBody.opcoName = selectedOpco;
 
-      const response = await fetch('https://snfpnl-production.up.railway.app/api/narrative/financial-packet', {
+      const response = await fetch('https://snfpnl.onrender.com/api/narrative/financial-packet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),

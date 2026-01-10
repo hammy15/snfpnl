@@ -64,7 +64,7 @@ const KPI_OPTIONS = [
 ];
 
 async function fetchAllKPIs(periodId: string): Promise<FacilityWithKPI[]> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/kpis/all/${periodId}`);
+  const res = await fetch(`https://snfpnl.onrender.com/api/kpis/all/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch KPIs');
   return res.json();
 }

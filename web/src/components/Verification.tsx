@@ -22,13 +22,13 @@ const STATES = ['ID', 'OR', 'WA', 'MT', 'CA', 'AZ', 'NV', 'UT', 'CO', 'WY'];
 const SETTINGS: ('SNF' | 'ALF' | 'ILF')[] = ['SNF', 'ALF', 'ILF'];
 
 async function fetchFacilities(): Promise<Facility[]> {
-  const res = await fetch('https://snfpnl-production.up.railway.app/api/facilities');
+  const res = await fetch('https://snfpnl.onrender.com/api/facilities');
   if (!res.ok) throw new Error('Failed to fetch facilities');
   return res.json();
 }
 
 async function createFacility(facility: Omit<Facility, 'facility_id'>): Promise<Facility> {
-  const res = await fetch('https://snfpnl-production.up.railway.app/api/facilities', {
+  const res = await fetch('https://snfpnl.onrender.com/api/facilities', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(facility),
@@ -38,7 +38,7 @@ async function createFacility(facility: Omit<Facility, 'facility_id'>): Promise<
 }
 
 async function updateFacility(facility: Facility): Promise<Facility> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/facilities/${facility.facility_id}`, {
+  const res = await fetch(`https://snfpnl.onrender.com/api/facilities/${facility.facility_id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(facility),
@@ -48,14 +48,14 @@ async function updateFacility(facility: Facility): Promise<Facility> {
 }
 
 async function deleteFacility(facilityId: string): Promise<void> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/facilities/${facilityId}`, {
+  const res = await fetch(`https://snfpnl.onrender.com/api/facilities/${facilityId}`, {
     method: 'DELETE',
   });
   if (!res.ok) throw new Error('Failed to delete facility');
 }
 
 async function updateFacilitySetting(facilityId: string, setting: string): Promise<Facility> {
-  const res = await fetch(`https://snfpnl-production.up.railway.app/api/facilities/${facilityId}`, {
+  const res = await fetch(`https://snfpnl.onrender.com/api/facilities/${facilityId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ setting }),

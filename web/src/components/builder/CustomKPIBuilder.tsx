@@ -76,7 +76,7 @@ export function CustomKPIBuilder({ facilityId }: CustomKPIBuilderProps) {
   const { data: customKPIs = [], isLoading } = useQuery<CustomKPI[]>({
     queryKey: ['custom-kpis'],
     queryFn: async () => {
-      const response = await fetch('https://snfpnl-production.up.railway.app/api/custom-kpis');
+      const response = await fetch('https://snfpnl.onrender.com/api/custom-kpis');
       if (!response.ok) throw new Error('Failed to fetch custom KPIs');
       return response.json();
     },
@@ -84,7 +84,7 @@ export function CustomKPIBuilder({ facilityId }: CustomKPIBuilderProps) {
 
   const createMutation = useMutation({
     mutationFn: async (kpi: Partial<CustomKPI>) => {
-      const response = await fetch('https://snfpnl-production.up.railway.app/api/custom-kpis', {
+      const response = await fetch('https://snfpnl.onrender.com/api/custom-kpis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(kpi)
@@ -102,7 +102,7 @@ export function CustomKPIBuilder({ facilityId }: CustomKPIBuilderProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/custom-kpis/${id}`, {
+      const response = await fetch(`https://snfpnl.onrender.com/api/custom-kpis/${id}`, {
         method: 'DELETE'
       });
       if (!response.ok) throw new Error('Failed to delete custom KPI');
@@ -114,7 +114,7 @@ export function CustomKPIBuilder({ facilityId }: CustomKPIBuilderProps) {
     if (!newKPI.formula) return;
 
     try {
-      const response = await fetch('https://snfpnl-production.up.railway.app/api/custom-kpis/test', {
+      const response = await fetch('https://snfpnl.onrender.com/api/custom-kpis/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

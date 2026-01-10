@@ -85,8 +85,8 @@ export function ActionItems({ facilityId }: ActionItemsProps) {
     queryKey: ['action-items', facilityId],
     queryFn: async () => {
       const url = facilityId
-        ? `https://snfpnl-production.up.railway.app/api/action-items?facilityId=${facilityId}`
-        : 'https://snfpnl-production.up.railway.app/api/action-items';
+        ? `https://snfpnl.onrender.com/api/action-items?facilityId=${facilityId}`
+        : 'https://snfpnl.onrender.com/api/action-items';
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch action items');
       return response.json();
@@ -95,7 +95,7 @@ export function ActionItems({ facilityId }: ActionItemsProps) {
 
   const addTaskMutation = useMutation({
     mutationFn: async (task: Partial<ActionItem>) => {
-      const response = await fetch('https://snfpnl-production.up.railway.app/api/action-items', {
+      const response = await fetch('https://snfpnl.onrender.com/api/action-items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...task, facilityId }),
@@ -112,7 +112,7 @@ export function ActionItems({ facilityId }: ActionItemsProps) {
 
   const updateTaskMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ActionItem> }) => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/action-items/${id}`, {
+      const response = await fetch(`https://snfpnl.onrender.com/api/action-items/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
@@ -127,7 +127,7 @@ export function ActionItems({ facilityId }: ActionItemsProps) {
 
   const deleteTaskMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/action-items/${id}`, {
+      const response = await fetch(`https://snfpnl.onrender.com/api/action-items/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete task');

@@ -66,7 +66,7 @@ export function WhatIfSimulator({ facilityId, periodId }: WhatIfSimulatorProps) 
   const { data: baseline, isLoading } = useQuery<FacilityBaseline>({
     queryKey: ['facility-baseline', facilityId, periodId],
     queryFn: async () => {
-      const response = await fetch(`https://snfpnl-production.up.railway.app/api/simulation/baseline/${facilityId}/${periodId}`);
+      const response = await fetch(`https://snfpnl.onrender.com/api/simulation/baseline/${facilityId}/${periodId}`);
       if (!response.ok) throw new Error('Failed to fetch baseline');
       return response.json();
     },
