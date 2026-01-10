@@ -19,7 +19,7 @@ function hashPassword(password: string): string {
 
 // Password hash - change this to set a new password
 // Current password: "snfpnl2025"
-const PASSWORD_HASH = '-1vq6ksq';
+const PASSWORD_HASH = '-ipe0m4';
 
 export function PasswordGate({ children }: PasswordGateProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
