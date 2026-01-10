@@ -6,12 +6,14 @@ interface UseKeyboardShortcutsProps {
   onNavigate: (view: View) => void;
   onToggleAI: () => void;
   onToggleTheme?: () => void;
+  onShowHelp?: () => void;
 }
 
 export function useKeyboardShortcuts({
   onNavigate,
   onToggleAI,
   onToggleTheme,
+  onShowHelp,
 }: UseKeyboardShortcutsProps) {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Don't trigger shortcuts when typing in inputs
@@ -103,44 +105,14 @@ export function useKeyboardShortcuts({
     // Question mark for help
     if (e.key === '?' && !e.metaKey && !e.ctrlKey && !e.altKey) {
       e.preventDefault();
-      showShortcutsHelp();
+      onShowHelp?.();
     }
-  }, [onNavigate, onToggleAI, onToggleTheme]);
+  }, [onNavigate, onToggleAI, onToggleTheme, onShowHelp]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
-}
-
-function showShortcutsHelp() {
-  // This could be replaced with a modal in the future
-  const shortcuts = `
-Keyboard Shortcuts:
-
-Navigation (Alt + number):
-  Alt+1  Dashboard
-  Alt+2  Facilities
-  Alt+3  Map
-  Alt+4  Tools
-  Alt+5  PPD
-  Alt+6  Verification
-  Alt+7  Summary
-  Alt+8  Compare
-  Alt+9  Alerts
-
-Quick Actions:
-  Cmd/Ctrl+K  Search facilities
-  Cmd/Ctrl+D  Dashboard
-  Cmd/Ctrl+F  Facilities
-  Cmd/Ctrl+M  Map
-  Cmd/Ctrl+E  Executive Summary
-  Cmd/Ctrl+J  Toggle AI Assistant
-  Alt+T       Toggle theme
-  Alt+A       Toggle AI Assistant
-  ?           Show this help
-  `;
-  console.log(shortcuts);
 }
 
 export const SHORTCUTS_HELP = [

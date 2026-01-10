@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { Search, MapPin, Building2, Filter } from 'lucide-react';
+import { Search, MapPin, Building2, Filter, Star } from 'lucide-react';
 import { useState, useMemo } from 'react';
+import { useFavorites } from '../contexts/FavoritesContext';
 import './FacilityList.css';
 
 type SettingFilter = 'all' | 'SNF' | 'ALF' | 'ILF';
@@ -31,6 +32,8 @@ async function fetchFacilities(): Promise<Facility[]> {
 export function FacilityList({ onFacilitySelect, settingFilter, onSettingFilterChange }: FacilityListProps) {
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState<string>('all');
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
   const { data: facilities = [], isLoading, error } = useQuery({
     queryKey: ['facilities'],
@@ -58,10 +61,11 @@ export function FacilityList({ onFacilitySelect, settingFilter, onSettingFilterC
 
       const matchesState = stateFilter === 'all' || facility.state === stateFilter;
       const matchesSetting = settingFilter === 'all' || facility.setting === settingFilter;
+      const matchesFavorites = !showFavoritesOnly || isFavorite(facility.facility_id);
 
-      return matchesSearch && matchesState && matchesSetting;
+      return matchesSearch && matchesState && matchesSetting && matchesFavorites;
     });
-  }, [facilities, search, stateFilter, settingFilter]);
+  }, [facilities, search, stateFilter, settingFilter, showFavoritesOnly, isFavorite]);
 
   if (isLoading) {
     return (
@@ -111,6 +115,14 @@ export function FacilityList({ onFacilitySelect, settingFilter, onSettingFilterC
             className="search-input"
           />
         </div>
+        <button
+          className={`favorites-filter-btn ${showFavoritesOnly ? 'active' : ''}`}
+          onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+          title={showFavoritesOnly ? 'Show all facilities' : 'Show favorites only'}
+        >
+          <Star size={16} fill={showFavoritesOnly ? 'currentColor' : 'none'} />
+          <span>Favorites ({favorites.length})</span>
+        </button>
         <div className="filter-group">
           <Filter size={18} />
           <select
@@ -138,6 +150,16 @@ export function FacilityList({ onFacilitySelect, settingFilter, onSettingFilterC
                 <Building2 size={20} />
               </div>
               <div className="facility-badges">
+                <button
+                  className={`favorite-btn ${isFavorite(facility.facility_id) ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(facility.facility_id);
+                  }}
+                  title={isFavorite(facility.facility_id) ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <Star size={16} fill={isFavorite(facility.facility_id) ? 'currentColor' : 'none'} />
+                </button>
                 <span className={`badge badge-${facility.setting.toLowerCase()}`}>
                   {facility.setting}
                 </span>

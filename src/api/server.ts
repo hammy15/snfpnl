@@ -5,6 +5,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
+import ExcelJS from 'exceljs';
 import { parseIncomeStatementWorkbook } from '../parsers/income-statement-parser.js';
 import { calculateAllKPIs } from '../kpi/calculator.js';
 import type { FinanceFact, CensusFact, OccupancyFact, Facility as FacilityType } from '../types/index.js';
@@ -6460,6 +6461,424 @@ app.get('/api/upload/status', (_req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to get upload status' });
+  }
+});
+
+// ============================================
+// EXCEL EXPORT API
+// ============================================
+
+app.get('/api/export/excel', async (req, res) => {
+  try {
+    const {
+      sheets = 'summary,facilities,trends,kpis',
+      periodId = '2025-11',
+      format = 'xlsx'
+    } = req.query as { sheets?: string; periodId?: string; format?: string };
+
+    const selectedSheets = sheets.split(',');
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'SNFPNL';
+    workbook.created = new Date();
+
+    // Get all facilities
+    const facilities = db.prepare(`
+      SELECT facility_id, name, state, setting, short_name
+      FROM facilities
+      ORDER BY name
+    `).all() as { facility_id: string; name: string; state: string; setting: string; short_name: string }[];
+
+    // Get KPI results for the period
+    const kpiResults = db.prepare(`
+      SELECT kr.facility_id, kr.kpi_id, kr.value, kr.period_id,
+             f.name as facility_name, f.state, f.setting
+      FROM kpi_results kr
+      JOIN facilities f ON kr.facility_id = f.facility_id
+      WHERE kr.period_id = ?
+      ORDER BY f.name, kr.kpi_id
+    `).all(periodId) as { facility_id: string; kpi_id: string; value: number | null; period_id: string; facility_name: string; state: string; setting: string }[];
+
+    // Executive Summary Sheet
+    if (selectedSheets.includes('summary')) {
+      const summarySheet = workbook.addWorksheet('Executive Summary');
+
+      // Title
+      summarySheet.mergeCells('A1:E1');
+      const titleCell = summarySheet.getCell('A1');
+      titleCell.value = 'SNFPNL Portfolio Executive Summary';
+      titleCell.font = { bold: true, size: 16 };
+      titleCell.alignment = { horizontal: 'center' };
+
+      summarySheet.mergeCells('A2:E2');
+      const periodCell = summarySheet.getCell('A2');
+      periodCell.value = `Period: ${periodId}`;
+      periodCell.alignment = { horizontal: 'center' };
+
+      // Portfolio Stats
+      summarySheet.getCell('A4').value = 'Portfolio Overview';
+      summarySheet.getCell('A4').font = { bold: true, size: 14 };
+
+      const facilityCount = facilities.length;
+      const snfCount = facilities.filter(f => f.setting === 'SNF').length;
+      const alfCount = facilities.filter(f => f.setting === 'ALF').length;
+      const ilfCount = facilities.filter(f => f.setting === 'ILF').length;
+
+      // Calculate average margin
+      const margins = kpiResults.filter(k =>
+        (k.kpi_id === 'snf_operating_margin_pct' || k.kpi_id === 'sl_operating_margin_pct') &&
+        k.value !== null
+      );
+      const avgMargin = margins.length > 0
+        ? margins.reduce((sum, m) => sum + (m.value || 0), 0) / margins.length
+        : 0;
+
+      const statsData = [
+        ['Metric', 'Value'],
+        ['Total Facilities', facilityCount],
+        ['SNF Facilities', snfCount],
+        ['ALF Facilities', alfCount],
+        ['ILF Facilities', ilfCount],
+        ['Average Operating Margin', `${avgMargin.toFixed(1)}%`],
+        ['Report Generated', new Date().toLocaleString()]
+      ];
+
+      statsData.forEach((row, idx) => {
+        summarySheet.getCell(`A${6 + idx}`).value = row[0];
+        summarySheet.getCell(`B${6 + idx}`).value = row[1];
+        if (idx === 0) {
+          summarySheet.getCell(`A${6 + idx}`).font = { bold: true };
+          summarySheet.getCell(`B${6 + idx}`).font = { bold: true };
+        }
+      });
+
+      summarySheet.columns = [
+        { width: 25 },
+        { width: 20 },
+        { width: 15 },
+        { width: 15 },
+        { width: 15 }
+      ];
+    }
+
+    // Facilities Overview Sheet
+    if (selectedSheets.includes('facilities')) {
+      const facilitySheet = workbook.addWorksheet('Facilities');
+
+      // Headers
+      facilitySheet.columns = [
+        { header: 'Facility ID', key: 'facility_id', width: 12 },
+        { header: 'Name', key: 'name', width: 30 },
+        { header: 'State', key: 'state', width: 8 },
+        { header: 'Setting', key: 'setting', width: 8 },
+        { header: 'Operating Margin %', key: 'margin', width: 18 },
+        { header: 'Revenue PPD', key: 'revenue', width: 14 },
+        { header: 'Cost PPD', key: 'cost', width: 12 },
+        { header: 'Skilled Mix %', key: 'skilled_mix', width: 14 },
+        { header: 'Occupancy %', key: 'occupancy', width: 12 }
+      ];
+
+      // Style header row
+      facilitySheet.getRow(1).font = { bold: true };
+      facilitySheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4472C4' }
+      };
+      facilitySheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+      // Add data
+      facilities.forEach(facility => {
+        const facilityKpis = kpiResults.filter(k => k.facility_id === facility.facility_id);
+        const getKpiValue = (kpiId: string) => {
+          const kpi = facilityKpis.find(k => k.kpi_id === kpiId);
+          return kpi?.value ?? null;
+        };
+
+        const margin = facility.setting === 'SNF'
+          ? getKpiValue('snf_operating_margin_pct')
+          : getKpiValue('sl_operating_margin_pct');
+        const revenue = getKpiValue('snf_total_revenue_ppd');
+        const cost = getKpiValue('snf_total_cost_ppd');
+        const skilledMix = getKpiValue('snf_skilled_mix_pct');
+        const occupancy = facility.setting === 'SNF'
+          ? getKpiValue('snf_occupancy_pct')
+          : getKpiValue('sl_occupancy_pct');
+
+        facilitySheet.addRow({
+          facility_id: facility.facility_id,
+          name: facility.name,
+          state: facility.state,
+          setting: facility.setting,
+          margin: margin !== null ? `${margin.toFixed(1)}%` : '-',
+          revenue: revenue !== null ? `$${revenue.toFixed(0)}` : '-',
+          cost: cost !== null ? `$${cost.toFixed(0)}` : '-',
+          skilled_mix: skilledMix !== null ? `${skilledMix.toFixed(1)}%` : '-',
+          occupancy: occupancy !== null ? `${occupancy.toFixed(1)}%` : '-'
+        });
+      });
+
+      // Add alternating row colors
+      facilitySheet.eachRow((row, rowNumber) => {
+        if (rowNumber > 1 && rowNumber % 2 === 0) {
+          row.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFF2F2F2' }
+          };
+        }
+      });
+    }
+
+    // Historical Trends Sheet
+    if (selectedSheets.includes('trends')) {
+      const trendsSheet = workbook.addWorksheet('Historical Trends');
+
+      // Get last 12 months of data
+      const trendData = db.prepare(`
+        SELECT kr.facility_id, kr.kpi_id, kr.value, kr.period_id,
+               f.name as facility_name
+        FROM kpi_results kr
+        JOIN facilities f ON kr.facility_id = f.facility_id
+        WHERE kr.kpi_id IN ('snf_operating_margin_pct', 'sl_operating_margin_pct',
+                           'snf_total_revenue_ppd', 'snf_skilled_mix_pct')
+        ORDER BY f.name, kr.period_id DESC
+        LIMIT 1000
+      `).all() as { facility_id: string; kpi_id: string; value: number | null; period_id: string; facility_name: string }[];
+
+      trendsSheet.columns = [
+        { header: 'Facility', key: 'facility', width: 30 },
+        { header: 'Period', key: 'period', width: 12 },
+        { header: 'KPI', key: 'kpi', width: 25 },
+        { header: 'Value', key: 'value', width: 15 }
+      ];
+
+      trendsSheet.getRow(1).font = { bold: true };
+      trendsSheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4472C4' }
+      };
+      trendsSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+      trendData.forEach(row => {
+        if (row.value !== null) {
+          trendsSheet.addRow({
+            facility: row.facility_name,
+            period: row.period_id,
+            kpi: row.kpi_id.replace(/_/g, ' ').replace(/snf |sl /g, ''),
+            value: row.value.toFixed(2)
+          });
+        }
+      });
+    }
+
+    // KPI Details Sheet
+    if (selectedSheets.includes('kpis')) {
+      const kpiSheet = workbook.addWorksheet('KPI Details');
+
+      kpiSheet.columns = [
+        { header: 'Facility', key: 'facility', width: 30 },
+        { header: 'Facility ID', key: 'facility_id', width: 12 },
+        { header: 'Period', key: 'period', width: 10 },
+        { header: 'KPI ID', key: 'kpi_id', width: 30 },
+        { header: 'Value', key: 'value', width: 15 },
+        { header: 'Setting', key: 'setting', width: 8 }
+      ];
+
+      kpiSheet.getRow(1).font = { bold: true };
+      kpiSheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4472C4' }
+      };
+      kpiSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+      kpiResults.forEach(row => {
+        if (row.value !== null) {
+          kpiSheet.addRow({
+            facility: row.facility_name,
+            facility_id: row.facility_id,
+            period: row.period_id,
+            kpi_id: row.kpi_id,
+            value: row.value,
+            setting: row.setting
+          });
+        }
+      });
+    }
+
+    // Alerts Sheet
+    if (selectedSheets.includes('alerts')) {
+      const alertsSheet = workbook.addWorksheet('Alerts');
+
+      const anomalies = db.prepare(`
+        SELECT a.*, f.name as facility_name
+        FROM anomalies a
+        JOIN facilities f ON a.facility_id = f.facility_id
+        WHERE a.period_id = ?
+        ORDER BY
+          CASE a.severity WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
+          f.name
+      `).all(periodId) as { facility_id: string; facility_name: string; kpi_id: string; severity: string; message: string }[];
+
+      alertsSheet.columns = [
+        { header: 'Facility', key: 'facility', width: 30 },
+        { header: 'Severity', key: 'severity', width: 10 },
+        { header: 'KPI', key: 'kpi', width: 25 },
+        { header: 'Message', key: 'message', width: 50 }
+      ];
+
+      alertsSheet.getRow(1).font = { bold: true };
+      alertsSheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4472C4' }
+      };
+      alertsSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+      anomalies.forEach(row => {
+        const dataRow = alertsSheet.addRow({
+          facility: row.facility_name,
+          severity: row.severity.toUpperCase(),
+          kpi: row.kpi_id,
+          message: row.message
+        });
+
+        // Color code by severity
+        if (row.severity === 'high') {
+          dataRow.getCell('severity').fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFFF6B6B' }
+          };
+        } else if (row.severity === 'medium') {
+          dataRow.getCell('severity').fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFFFD93D' }
+          };
+        }
+      });
+    }
+
+    // Set response headers
+    const filename = `SNFPNL_Export_${periodId}_${new Date().toISOString().split('T')[0]}`;
+
+    if (format === 'csv') {
+      // For CSV, just export the facilities sheet
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}.csv"`);
+
+      const csvWorkbook = new ExcelJS.Workbook();
+      const csvSheet = csvWorkbook.addWorksheet('Data');
+
+      // Copy facilities data
+      const facilitySheet = workbook.getWorksheet('Facilities');
+      if (facilitySheet) {
+        facilitySheet.eachRow((row, rowNum) => {
+          const newRow = csvSheet.getRow(rowNum);
+          row.eachCell((cell, colNum) => {
+            newRow.getCell(colNum).value = cell.value;
+          });
+        });
+      }
+
+      const buffer = await csvWorkbook.csv.writeBuffer();
+      res.send(buffer);
+    } else {
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}.xlsx"`);
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      res.send(buffer);
+    }
+
+  } catch (err) {
+    console.error('Excel export error:', err);
+    res.status(500).json({ error: 'Failed to generate Excel export' });
+  }
+});
+
+// Single facility export
+app.get('/api/export/facility/:facilityId', async (req, res) => {
+  try {
+    const { facilityId } = req.params;
+    const { periodId = '2025-11', format = 'xlsx' } = req.query as { periodId?: string; format?: string };
+
+    const facility = db.prepare(`
+      SELECT * FROM facilities WHERE facility_id = ?
+    `).get(facilityId) as { facility_id: string; name: string; state: string; setting: string } | undefined;
+
+    if (!facility) {
+      return res.status(404).json({ error: 'Facility not found' });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'SNFPNL';
+    workbook.created = new Date();
+
+    // Get KPI data for the facility
+    const kpiData = db.prepare(`
+      SELECT kr.kpi_id, kr.value, kr.period_id
+      FROM kpi_results kr
+      WHERE kr.facility_id = ?
+      ORDER BY kr.period_id DESC, kr.kpi_id
+    `).all(facilityId) as { kpi_id: string; value: number | null; period_id: string }[];
+
+    // Summary sheet
+    const summarySheet = workbook.addWorksheet('Facility Summary');
+
+    summarySheet.mergeCells('A1:D1');
+    summarySheet.getCell('A1').value = facility.name;
+    summarySheet.getCell('A1').font = { bold: true, size: 16 };
+
+    summarySheet.getCell('A3').value = 'Facility ID:';
+    summarySheet.getCell('B3').value = facility.facility_id;
+    summarySheet.getCell('A4').value = 'State:';
+    summarySheet.getCell('B4').value = facility.state;
+    summarySheet.getCell('A5').value = 'Setting:';
+    summarySheet.getCell('B5').value = facility.setting;
+    summarySheet.getCell('A6').value = 'Report Period:';
+    summarySheet.getCell('B6').value = periodId;
+
+    // KPI Data sheet
+    const kpiSheet = workbook.addWorksheet('KPI Data');
+
+    kpiSheet.columns = [
+      { header: 'Period', key: 'period', width: 12 },
+      { header: 'KPI', key: 'kpi', width: 35 },
+      { header: 'Value', key: 'value', width: 15 }
+    ];
+
+    kpiSheet.getRow(1).font = { bold: true };
+    kpiSheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4472C4' }
+    };
+    kpiSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+    kpiData.forEach(row => {
+      if (row.value !== null) {
+        kpiSheet.addRow({
+          period: row.period_id,
+          kpi: row.kpi_id,
+          value: row.value
+        });
+      }
+    });
+
+    const filename = `${facility.name.replace(/[^a-z0-9]/gi, '_')}_${periodId}`;
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}.xlsx"`);
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    res.send(buffer);
+
+  } catch (err) {
+    console.error('Facility export error:', err);
+    res.status(500).json({ error: 'Failed to generate facility export' });
   }
 });
 

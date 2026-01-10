@@ -5,6 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieCha
 import { KPICard } from './KPICard';
 import { SectionExplainer, InfoTooltip } from './ui/InfoTooltip';
 import { NarrativeReport, FinancialPacketGenerator } from './NarrativeReport';
+import { PortfolioT12M } from './performance/PortfolioT12M';
 import './Dashboard.css';
 
 type SettingFilter = 'all' | 'SNF' | 'ALF' | 'ILF';
@@ -745,6 +746,14 @@ export function Dashboard({ periodId, settingFilter, onSettingFilterChange, onFa
             </table>
           </div>
         </div>
+      </div>
+
+      {/* Portfolio T12M Performance */}
+      <div className="mt-6">
+        <PortfolioT12M
+          periodId={periodId}
+          onFacilitySelect={onFacilitySelect}
+        />
       </div>
 
       {/* Narrative Report Section */}

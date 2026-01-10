@@ -18,6 +18,8 @@ import { FacilityDirectory } from './components/FacilityDirectory';
 import { AIAssistant } from './components/AIAssistant';
 import { PasswordGate } from './components/PasswordGate';
 import { DataUpload } from './components/DataUpload';
+import { FacilityManagement } from './components/FacilityManagement';
+import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -29,7 +31,7 @@ const queryClient = new QueryClient({
   },
 });
 
-type View = 'dashboard' | 'facilities' | 'facility-detail' | 'tools' | 'map' | 'ppd' | 'verification' | 'executive' | 'comparison' | 'alerts' | 'directory' | 'upload';
+type View = 'dashboard' | 'facilities' | 'facility-detail' | 'tools' | 'map' | 'ppd' | 'verification' | 'executive' | 'comparison' | 'alerts' | 'directory' | 'upload' | 'manage';
 type SettingFilter = 'all' | 'SNF' | 'ALF' | 'ILF';
 
 interface Facility {
@@ -51,6 +53,7 @@ function AppContent() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('2025-11');
   const [settingFilter, setSettingFilter] = useState<SettingFilter>('all');
   const [isAIOpen, setIsAIOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const { toggleTheme } = useTheme();
 
   const { data: facilities = [] } = useQuery({
@@ -63,6 +66,7 @@ function AppContent() {
     onNavigate: setCurrentView,
     onToggleAI: () => setIsAIOpen(!isAIOpen),
     onToggleTheme: toggleTheme,
+    onShowHelp: () => setIsShortcutsOpen(true),
   });
 
   const handleFacilitySelect = (facilityId: string) => {
@@ -158,6 +162,9 @@ function AppContent() {
         {currentView === 'upload' && (
           <DataUpload />
         )}
+        {currentView === 'manage' && (
+          <FacilityManagement />
+        )}
       </main>
       <AIAssistant
         isOpen={isAIOpen}
@@ -165,6 +172,10 @@ function AppContent() {
         periodId={selectedPeriod}
         selectedFacility={selectedFacilityId}
         facilities={facilities}
+      />
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
       />
     </div>
   );

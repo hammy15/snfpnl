@@ -54,9 +54,49 @@
   border-radius: 4px;
 }
 
+.t12m-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .t12m-summary-badges {
   display: flex;
   gap: 0.5rem;
+}
+
+.t12m-export-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.t12m-export-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.t12m-export-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.t12m-export-btn .spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .t12m-summary-badges .badge {
@@ -243,6 +283,7 @@
 .metric-sparkline {
   margin: 0.5rem 0;
   height: 40px;
+  pointer-events: none;
 }
 
 .metric-changes {
@@ -451,4 +492,78 @@
     transparent 3px,
     transparent 6px
   );
+}
+
+/* Date Range Selector */
+.date-range-selector {
+  position: relative;
+}
+
+.date-range-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.date-range-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--primary);
+}
+
+.date-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+
+.date-range-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 180px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-glass);
+  border-radius: 10px;
+  padding: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+}
+
+.date-range-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.preset-btn {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.preset-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.preset-btn.active {
+  background: rgba(102, 126, 234, 0.15);
+  color: var(--primary);
+  font-weight: 500;
 }

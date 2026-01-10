@@ -47,10 +47,43 @@
   color: var(--primary-color);
 }
 
+.facility-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 .facility-header h1 {
   font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin: 0;
+}
+
+.favorite-btn-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.favorite-btn-large:hover {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
+.favorite-btn-large.active {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: #fbbf24;
+  color: #fbbf24;
 }
 
 .facility-meta {

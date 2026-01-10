@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { LayoutDashboard, List, Map, Wrench, Bot, ClipboardCheck, DollarSign, FileText, GitCompare, Bell, BookOpen, Upload } from 'lucide-react';
+import { LayoutDashboard, List, Map, Wrench, Bot, ClipboardCheck, DollarSign, FileText, GitCompare, Bell, BookOpen, Upload, Settings } from 'lucide-react';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { FacilitySearch } from './FacilitySearch';
 import { MobileNav } from './MobileNav';
 import { Logo } from './Logo';
+import { ExcelExport } from './export/ExcelExport';
 import './Header.css';
 
-type View = 'dashboard' | 'facilities' | 'facility-detail' | 'tools' | 'map' | 'ppd' | 'verification' | 'executive' | 'comparison' | 'alerts' | 'directory' | 'upload';
+type View = 'dashboard' | 'facilities' | 'facility-detail' | 'tools' | 'map' | 'ppd' | 'verification' | 'executive' | 'comparison' | 'alerts' | 'directory' | 'upload' | 'manage';
 
 interface Facility {
   facility_id: string;
@@ -125,6 +126,13 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
             <Upload size={18} />
             Upload
           </button>
+          <button
+            className={`nav-btn ${currentView === 'manage' ? 'active' : ''}`}
+            onClick={() => onNavigate('manage')}
+          >
+            <Settings size={18} />
+            Manage
+          </button>
         </nav>
 
         <div className="header-right">
@@ -139,6 +147,7 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
               </option>
             ))}
           </select>
+          <ExcelExport periodId={selectedPeriod} />
           <ThemeToggle />
           <button
             className={`ai-toggle ${isAIOpen ? 'active' : ''}`}

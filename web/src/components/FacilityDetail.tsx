@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRef } from 'react';
-import { ArrowLeft, Building2, MapPin, TrendingUp, DollarSign, Users, Percent, Activity, AlertTriangle, FileText } from 'lucide-react';
+import { ArrowLeft, Building2, MapPin, TrendingUp, DollarSign, Users, Percent, Activity, AlertTriangle, FileText, Star } from 'lucide-react';
+import { useFavorites } from '../contexts/FavoritesContext';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import { KPICard } from './KPICard';
 import { T12MAnalysis } from './performance/T12MAnalysis';
@@ -112,6 +113,7 @@ function getMarginKpiId(setting: string): string {
 export function FacilityDetail({ facilityId, periodId, onBack }: FacilityDetailProps) {
   const reportRef = useRef<HTMLDivElement>(null);
   const packetRef = useRef<HTMLDivElement>(null);
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   const scrollToPacket = () => {
     packetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -183,7 +185,16 @@ export function FacilityDetail({ facilityId, periodId, onBack }: FacilityDetailP
             <Building2 size={32} />
           </div>
           <div>
-            <h1>{facility.name}</h1>
+            <div className="facility-title-row">
+              <h1>{facility.name}</h1>
+              <button
+                className={`favorite-btn-large ${isFavorite(facilityId) ? 'active' : ''}`}
+                onClick={() => toggleFavorite(facilityId)}
+                title={isFavorite(facilityId) ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                <Star size={22} fill={isFavorite(facilityId) ? 'currentColor' : 'none'} />
+              </button>
+            </div>
             <div className="facility-meta">
               <span className="meta-item">
                 <MapPin size={16} />
