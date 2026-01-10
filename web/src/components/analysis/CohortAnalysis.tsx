@@ -58,7 +58,7 @@ export function CohortAnalysis({ onFacilityClick }: CohortAnalysisProps) {
   const { data, isLoading, error } = useQuery<CohortAnalysisResponse>({
     queryKey: ['cohort-analysis', dimension],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:3002/api/cohort-analysis?dimension=${dimension}`);
+      const response = await fetch(`https://snfpnl-production.up.railway.app/api/cohort-analysis?dimension=${dimension}`);
       if (!response.ok) throw new Error('Failed to fetch cohort analysis');
       return response.json();
     },

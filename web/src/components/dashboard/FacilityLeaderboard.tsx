@@ -45,7 +45,7 @@ export function FacilityLeaderboard({ periodId, onFacilityClick }: FacilityLeade
   const { data, isLoading, error } = useQuery<LeaderboardResponse>({
     queryKey: ['leaderboard', periodId],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:3002/api/leaderboard/${periodId}`);
+      const response = await fetch(`https://snfpnl-production.up.railway.app/api/leaderboard/${periodId}`);
       if (!response.ok) throw new Error('Failed to fetch leaderboard');
       return response.json();
     },

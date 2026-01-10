@@ -38,7 +38,7 @@ export function GoalTracking({ facilityId }: GoalTrackingProps) {
   const { data, isLoading, error } = useQuery<GoalsResponse>({
     queryKey: ['goals', facilityId],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:3002/api/goals/${facilityId}`);
+      const response = await fetch(`https://snfpnl-production.up.railway.app/api/goals/${facilityId}`);
       if (!response.ok) throw new Error('Failed to fetch goals');
       return response.json();
     },
@@ -46,7 +46,7 @@ export function GoalTracking({ facilityId }: GoalTrackingProps) {
 
   const addGoalMutation = useMutation({
     mutationFn: async (goal: { kpiId: string; targetValue: number }) => {
-      const response = await fetch(`http://localhost:3002/api/goals/${facilityId}`, {
+      const response = await fetch(`https://snfpnl-production.up.railway.app/api/goals/${facilityId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(goal),
@@ -63,7 +63,7 @@ export function GoalTracking({ facilityId }: GoalTrackingProps) {
 
   const deleteGoalMutation = useMutation({
     mutationFn: async (kpiId: string) => {
-      const response = await fetch(`http://localhost:3002/api/goals/${facilityId}/${kpiId}`, {
+      const response = await fetch(`https://snfpnl-production.up.railway.app/api/goals/${facilityId}/${kpiId}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete goal');

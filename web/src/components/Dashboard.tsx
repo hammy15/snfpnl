@@ -59,13 +59,13 @@ const BENCHMARKS: Record<string, {
 };
 
 async function fetchDashboard(periodId: string): Promise<DashboardData> {
-  const res = await fetch(`http://localhost:3002/api/dashboard/${periodId}`);
+  const res = await fetch(`https://snfpnl-production.up.railway.app/api/dashboard/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch dashboard');
   return res.json();
 }
 
 async function fetchFacilities(): Promise<Facility[]> {
-  const res = await fetch('http://localhost:3002/api/facilities');
+  const res = await fetch('https://snfpnl-production.up.railway.app/api/facilities');
   if (!res.ok) throw new Error('Failed to fetch facilities');
   return res.json();
 }
@@ -80,7 +80,7 @@ interface KPIData {
 }
 
 async function fetchAllKPIs(periodId: string): Promise<KPIData[]> {
-  const res = await fetch(`http://localhost:3002/api/kpis/all/${periodId}`);
+  const res = await fetch(`https://snfpnl-production.up.railway.app/api/kpis/all/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch KPIs');
   return res.json();
 }
@@ -105,7 +105,7 @@ interface FinancialSummary {
 }
 
 async function fetchFinancialSummary(periodId: string): Promise<FinancialSummary> {
-  const res = await fetch(`http://localhost:3002/api/financials/summary/${periodId}`);
+  const res = await fetch(`https://snfpnl-production.up.railway.app/api/financials/summary/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch financial summary');
   return res.json();
 }

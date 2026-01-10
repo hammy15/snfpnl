@@ -28,7 +28,7 @@ export function ThresholdAlerts({ facilityId, periodId }: ThresholdAlertsProps) 
   const { data, isLoading, error } = useQuery<AlertsResponse>({
     queryKey: ['alerts', facilityId, periodId],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:3002/api/alerts/${facilityId}/${periodId}`);
+      const response = await fetch(`https://snfpnl-production.up.railway.app/api/alerts/${facilityId}/${periodId}`);
       if (!response.ok) throw new Error('Failed to fetch alerts');
       return response.json();
     },

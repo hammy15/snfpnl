@@ -40,7 +40,7 @@ export function BudgetVsActual({ facilityId, periodId }: BudgetVsActualProps) {
   const { data, isLoading, error } = useQuery<BudgetVsActualResponse>({
     queryKey: ['budget-vs-actual', facilityId, periodId],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:3002/api/budget-vs-actual/${facilityId}/${periodId}`);
+      const response = await fetch(`https://snfpnl-production.up.railway.app/api/budget-vs-actual/${facilityId}/${periodId}`);
       if (!response.ok) throw new Error('Failed to fetch budget data');
       return response.json();
     },

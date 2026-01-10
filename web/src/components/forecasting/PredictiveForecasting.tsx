@@ -54,7 +54,7 @@ export function PredictiveForecasting({ facilityId, periodId }: PredictiveForeca
     queryKey: ['forecast', facilityId, periodId, selectedKpi, forecastHorizon],
     queryFn: async () => {
       const response = await fetch(
-        `http://localhost:3002/api/forecast/${facilityId}/${periodId}?kpi=${selectedKpi}&horizon=${forecastHorizon}`
+        `https://snfpnl-production.up.railway.app/api/forecast/${facilityId}/${periodId}?kpi=${selectedKpi}&horizon=${forecastHorizon}`
       );
       if (!response.ok) throw new Error('Failed to fetch forecast');
       return response.json();

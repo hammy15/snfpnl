@@ -47,7 +47,7 @@ export function PredictiveTrends({ facilityId }: PredictiveTrendsProps) {
   const { data, isLoading, error } = useQuery<ForecastResponse>({
     queryKey: ['forecast', facilityId, selectedKpi],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:3002/api/forecast/${facilityId}/${selectedKpi}`);
+      const response = await fetch(`https://snfpnl-production.up.railway.app/api/forecast/${facilityId}/${selectedKpi}`);
       if (!response.ok) throw new Error('Failed to fetch forecast');
       return response.json();
     },

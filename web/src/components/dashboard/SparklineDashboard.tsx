@@ -129,7 +129,7 @@ export function SparklineDashboard({ onFacilityClick }: SparklineDashboardProps)
   const { data, isLoading, error } = useQuery<SparklineDashboardResponse>({
     queryKey: ['sparkline-dashboard'],
     queryFn: async () => {
-      const response = await fetch('http://localhost:3002/api/sparkline-dashboard');
+      const response = await fetch('https://snfpnl-production.up.railway.app/api/sparkline-dashboard');
       if (!response.ok) throw new Error('Failed to fetch dashboard data');
       return response.json();
     },

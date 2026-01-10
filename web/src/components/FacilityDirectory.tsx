@@ -52,7 +52,7 @@ interface DirectoryResponse {
 }
 
 async function fetchDirectory(): Promise<DirectoryResponse> {
-  const res = await fetch('http://localhost:3002/api/facility-directory');
+  const res = await fetch('https://snfpnl-production.up.railway.app/api/facility-directory');
   if (!res.ok) throw new Error('Failed to fetch facility directory');
   return res.json();
 }

@@ -50,7 +50,7 @@ export function FacilityCompare({ periodId }: { periodId: string }) {
   const { data: facilitiesData } = useQuery<FacilityOption[]>({
     queryKey: ['facilities-list'],
     queryFn: async () => {
-      const response = await fetch('http://localhost:3002/api/facilities');
+      const response = await fetch('https://snfpnl-production.up.railway.app/api/facilities');
       if (!response.ok) throw new Error('Failed to fetch facilities');
       return response.json();
     },
@@ -60,7 +60,7 @@ export function FacilityCompare({ periodId }: { periodId: string }) {
   const { data: comparisonData, isLoading } = useQuery<ComparisonData>({
     queryKey: ['facility-compare', selectedFacilities, periodId],
     queryFn: async () => {
-      const response = await fetch('http://localhost:3002/api/compare', {
+      const response = await fetch('https://snfpnl-production.up.railway.app/api/compare', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ facilityIds: selectedFacilities, periodId }),

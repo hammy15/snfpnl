@@ -35,13 +35,13 @@ const KPI_LABELS: Record<string, string> = {
 };
 
 async function fetchPeriods(): Promise<string[]> {
-  const res = await fetch('http://localhost:3002/api/periods');
+  const res = await fetch('https://snfpnl-production.up.railway.app/api/periods');
   if (!res.ok) throw new Error('Failed to fetch periods');
   return res.json();
 }
 
 async function fetchComparison(period1: string, period2: string): Promise<ComparisonData[]> {
-  const res = await fetch(`http://localhost:3002/api/comparison?period1=${period1}&period2=${period2}`);
+  const res = await fetch(`https://snfpnl-production.up.railway.app/api/comparison?period1=${period1}&period2=${period2}`);
   if (!res.ok) throw new Error('Failed to fetch comparison');
   return res.json();
 }

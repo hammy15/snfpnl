@@ -48,7 +48,7 @@ export function AIInsightsAssistant({ facilityId, periodId }: AIInsightsAssistan
   const { data, isLoading, refetch } = useQuery<{ insights: Insight[]; suggestions: SuggestedQuestion[] }>({
     queryKey: ['ai-insights', facilityId, periodId],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:3002/api/ai-insights/${facilityId}/${periodId}`);
+      const response = await fetch(`https://snfpnl-production.up.railway.app/api/ai-insights/${facilityId}/${periodId}`);
       if (!response.ok) throw new Error('Failed to fetch AI insights');
       return response.json();
     },
@@ -67,7 +67,7 @@ export function AIInsightsAssistant({ facilityId, periodId }: AIInsightsAssistan
     setIsAsking(true);
 
     try {
-      const response = await fetch('http://localhost:3002/api/ai-insights/ask', {
+      const response = await fetch('https://snfpnl-production.up.railway.app/api/ai-insights/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: q, facilityId, periodId })

@@ -39,7 +39,7 @@ export function PortfolioHeatmap({ periodId, onFacilityClick }: PortfolioHeatmap
   const { data, isLoading, error } = useQuery<HeatmapResponse>({
     queryKey: ['portfolio-heatmap', periodId],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:3002/api/portfolio-heatmap/${periodId}`);
+      const response = await fetch(`https://snfpnl-production.up.railway.app/api/portfolio-heatmap/${periodId}`);
       if (!response.ok) throw new Error('Failed to fetch heatmap data');
       return response.json();
     },

@@ -67,8 +67,8 @@ export function SeasonalityDetection({ facilityId }: SeasonalityDetectionProps) 
     queryKey: ['seasonality', facilityId],
     queryFn: async () => {
       const url = facilityId
-        ? `http://localhost:3002/api/seasonality/${facilityId}`
-        : 'http://localhost:3002/api/seasonality';
+        ? `https://snfpnl-production.up.railway.app/api/seasonality/${facilityId}`
+        : 'https://snfpnl-production.up.railway.app/api/seasonality';
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch seasonality data');
       return response.json();
