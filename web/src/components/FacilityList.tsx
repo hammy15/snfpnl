@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { Search, MapPin, Building2, Filter, Star } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Search, MapPin, Building2, Filter, Star, Trash2 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useFavorites } from '../contexts/FavoritesContext';
 import './FacilityList.css';
@@ -34,11 +34,32 @@ export function FacilityList({ onFacilitySelect, settingFilter, onSettingFilterC
   const [stateFilter, setStateFilter] = useState<string>('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
+  const queryClient = useQueryClient();
 
   const { data: facilities = [], isLoading, error } = useQuery({
     queryKey: ['facilities'],
     queryFn: fetchFacilities,
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (facilityId: string) => {
+      const res = await fetch(`https://snfpnl.onrender.com/api/facilities/${facilityId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to delete facility');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['facilities'] });
+    },
+  });
+
+  const handleDelete = (e: React.MouseEvent, facility: Facility) => {
+    e.stopPropagation();
+    if (window.confirm(`Are you sure you want to delete "${facility.name}"? This action cannot be undone.`)) {
+      deleteMutation.mutate(facility.facility_id);
+    }
+  };
 
   const states = useMemo(() => {
     const uniqueStates = [...new Set(facilities.map(f => f.state))].filter(Boolean).sort();
@@ -159,6 +180,14 @@ export function FacilityList({ onFacilitySelect, settingFilter, onSettingFilterC
                   title={isFavorite(facility.facility_id) ? 'Remove from favorites' : 'Add to favorites'}
                 >
                   <Star size={16} fill={isFavorite(facility.facility_id) ? 'currentColor' : 'none'} />
+                </button>
+                <button
+                  className="delete-btn"
+                  onClick={(e) => handleDelete(e, facility)}
+                  title="Delete facility"
+                  disabled={deleteMutation.isPending}
+                >
+                  <Trash2 size={16} />
                 </button>
                 <span className={`badge badge-${facility.setting.toLowerCase()}`}>
                   {facility.setting}
