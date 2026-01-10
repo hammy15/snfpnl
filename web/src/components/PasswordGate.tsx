@@ -6,20 +6,9 @@ interface PasswordGateProps {
   children: React.ReactNode;
 }
 
-// Simple hash function for client-side password check
-function hashPassword(password: string): string {
-  let hash = 0;
-  for (let i = 0; i < password.length; i++) {
-    const char = password.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return hash.toString(36);
-}
-
-// Password hash - change this to set a new password
-// Current password: "snfpnl2025"
-const PASSWORD_HASH = '-ipe0m4';
+// Password for access - change this to set a new password
+const APP_PASSWORD = 'snfpnl2025';
+const AUTH_KEY = 'snfpnl_authenticated';
 
 export function PasswordGate({ children }: PasswordGateProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -30,8 +19,8 @@ export function PasswordGate({ children }: PasswordGateProps) {
 
   useEffect(() => {
     // Check if already authenticated
-    const auth = localStorage.getItem('snfpnl_auth');
-    if (auth === PASSWORD_HASH) {
+    const auth = localStorage.getItem(AUTH_KEY);
+    if (auth === 'true') {
       setIsAuthenticated(true);
     }
     setIsLoading(false);
@@ -41,10 +30,8 @@ export function PasswordGate({ children }: PasswordGateProps) {
     e.preventDefault();
     setError('');
 
-    const hashedInput = hashPassword(password);
-
-    if (hashedInput === PASSWORD_HASH) {
-      localStorage.setItem('snfpnl_auth', PASSWORD_HASH);
+    if (password === APP_PASSWORD) {
+      localStorage.setItem(AUTH_KEY, 'true');
       setIsAuthenticated(true);
     } else {
       setError('Incorrect password');
@@ -53,7 +40,7 @@ export function PasswordGate({ children }: PasswordGateProps) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('snfpnl_auth');
+    localStorage.removeItem(AUTH_KEY);
     setIsAuthenticated(false);
     setPassword('');
   };
