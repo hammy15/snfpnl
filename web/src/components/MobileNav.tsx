@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import {
   Menu, X, LayoutDashboard, List, Map, Wrench, DollarSign,
-  ClipboardCheck, FileText, GitCompare, Bell, Building2, BookOpen
+  ClipboardCheck, FileText, GitCompare, Bell, Building2, BookOpen, Upload
 } from 'lucide-react';
 import './MobileNav.css';
 
-type View = 'dashboard' | 'facilities' | 'facility-detail' | 'tools' | 'map' | 'ppd' | 'verification' | 'executive' | 'comparison' | 'alerts' | 'directory';
+type View = 'dashboard' | 'facilities' | 'facility-detail' | 'tools' | 'map' | 'ppd' | 'verification' | 'executive' | 'comparison' | 'alerts' | 'directory' | 'upload';
 
 interface MobileNavProps {
   currentView: View;
@@ -23,6 +23,7 @@ const NAV_ITEMS: { view: View; icon: typeof LayoutDashboard; label: string }[] =
   { view: 'comparison', icon: GitCompare, label: 'Compare' },
   { view: 'alerts', icon: Bell, label: 'Alerts' },
   { view: 'directory', icon: BookOpen, label: 'Directory' },
+  { view: 'upload', icon: Upload, label: 'Upload Data' },
 ];
 
 export function MobileNav({ currentView, onNavigate }: MobileNavProps) {

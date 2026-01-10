@@ -17,6 +17,7 @@ import { AlertsDashboard } from './components/AlertsDashboard';
 import { FacilityDirectory } from './components/FacilityDirectory';
 import { AIAssistant } from './components/AIAssistant';
 import { PasswordGate } from './components/PasswordGate';
+import { DataUpload } from './components/DataUpload';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -28,7 +29,7 @@ const queryClient = new QueryClient({
   },
 });
 
-type View = 'dashboard' | 'facilities' | 'facility-detail' | 'tools' | 'map' | 'ppd' | 'verification' | 'executive' | 'comparison' | 'alerts' | 'directory';
+type View = 'dashboard' | 'facilities' | 'facility-detail' | 'tools' | 'map' | 'ppd' | 'verification' | 'executive' | 'comparison' | 'alerts' | 'directory' | 'upload';
 type SettingFilter = 'all' | 'SNF' | 'ALF' | 'ILF';
 
 interface Facility {
@@ -153,6 +154,9 @@ function AppContent() {
           <FacilityDirectory
             onFacilitySelect={handleFacilitySelect}
           />
+        )}
+        {currentView === 'upload' && (
+          <DataUpload />
         )}
       </main>
       <AIAssistant

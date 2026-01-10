@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { LayoutDashboard, List, Map, Wrench, Bot, ClipboardCheck, DollarSign, FileText, GitCompare, Bell, BookOpen } from 'lucide-react';
+import { LayoutDashboard, List, Map, Wrench, Bot, ClipboardCheck, DollarSign, FileText, GitCompare, Bell, BookOpen, Upload } from 'lucide-react';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { FacilitySearch } from './FacilitySearch';
 import { MobileNav } from './MobileNav';
 import { Logo } from './Logo';
 import './Header.css';
 
-type View = 'dashboard' | 'facilities' | 'facility-detail' | 'tools' | 'map' | 'ppd' | 'verification' | 'executive' | 'comparison' | 'alerts' | 'directory';
+type View = 'dashboard' | 'facilities' | 'facility-detail' | 'tools' | 'map' | 'ppd' | 'verification' | 'executive' | 'comparison' | 'alerts' | 'directory' | 'upload';
 
 interface Facility {
   facility_id: string;
@@ -117,6 +117,13 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
           >
             <BookOpen size={18} />
             Directory
+          </button>
+          <button
+            className={`nav-btn ${currentView === 'upload' ? 'active' : ''}`}
+            onClick={() => onNavigate('upload')}
+          >
+            <Upload size={18} />
+            Upload
           </button>
         </nav>
 

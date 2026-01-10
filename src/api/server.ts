@@ -4,6 +4,10 @@ import Database from 'better-sqlite3';
 import Anthropic from '@anthropic-ai/sdk';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import multer from 'multer';
+import { parseIncomeStatementWorkbook } from '../parsers/income-statement-parser.js';
+import { calculateAllKPIs } from '../kpi/calculator.js';
+import type { FinanceFact, CensusFact, OccupancyFact, Facility as FacilityType } from '../types/index.js';
 import {
   calculatePearsonCorrelation,
   calculateT12MStats,
@@ -6188,6 +6192,274 @@ Be concise, data-driven, and actionable in your responses. Format numbers with a
   } catch (err: any) {
     console.error('Claude API error:', err);
     res.status(500).json({ error: 'Failed to get AI response', details: err.message });
+  }
+});
+
+// ============================================================================
+// FILE UPLOAD ENDPOINT
+// ============================================================================
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, '/tmp');
+  },
+  filename: (_req, file, cb) => {
+    cb(null, `upload_${Date.now()}_${file.originalname}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+  fileFilter: (_req, file, cb) => {
+    if (file.originalname.endsWith('.xlsx') || file.originalname.endsWith('.xls')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only Excel files (.xlsx, .xls) are allowed'));
+    }
+  }
+});
+
+// Upload and process financial data
+app.post('/api/upload', upload.single('file'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  const filePath = req.file.path;
+  console.log(`Processing uploaded file: ${filePath}`);
+
+  try {
+    // Parse the Excel file
+    const { financeFacts, censusFacts, occupancyFacts, facilityIds } = parseIncomeStatementWorkbook(filePath);
+
+    console.log(`Parsed: ${facilityIds.length} facilities, ${financeFacts.length} finance facts, ${censusFacts.length} census facts`);
+
+    if (financeFacts.length === 0) {
+      return res.status(400).json({
+        error: 'No valid financial data found in file',
+        details: 'Make sure the Excel file has sheets named like "101 (Shaw)" with proper income statement format'
+      });
+    }
+
+    // Get unique periods from the data
+    const periods = [...new Set(financeFacts.map(f => f.period_id))].sort();
+    console.log(`Periods found: ${periods.join(', ')}`);
+
+    // Insert/update facilities
+    const insertFacility = db.prepare(`
+      INSERT OR IGNORE INTO facilities
+      (facility_id, name, short_name, state, setting)
+      VALUES (?, ?, ?, 'UNKNOWN', 'SNF')
+    `);
+
+    for (const facId of facilityIds) {
+      insertFacility.run(facId, `Facility ${facId}`, `Facility ${facId}`);
+    }
+
+    // Insert periods
+    const insertPeriod = db.prepare(`
+      INSERT OR IGNORE INTO periods (period_id, year, month, days_in_month, start_date, end_date)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+
+    for (const periodId of periods) {
+      const [year, month] = periodId.split('-').map(Number);
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0);
+      const daysInMonth = endDate.getDate();
+
+      insertPeriod.run(
+        periodId,
+        year,
+        month,
+        daysInMonth,
+        startDate.toISOString().split('T')[0],
+        endDate.toISOString().split('T')[0]
+      );
+    }
+
+    // Clear existing facts for these periods and facilities (to allow updates)
+    const deleteFinance = db.prepare(`DELETE FROM finance_facts WHERE facility_id = ? AND period_id = ?`);
+    const deleteCensus = db.prepare(`DELETE FROM census_facts WHERE facility_id = ? AND period_id = ?`);
+    const deleteOccupancy = db.prepare(`DELETE FROM occupancy_facts WHERE facility_id = ? AND period_id = ?`);
+    const deleteKPIs = db.prepare(`DELETE FROM kpi_results WHERE facility_id = ? AND period_id = ?`);
+
+    for (const facId of facilityIds) {
+      for (const periodId of periods) {
+        deleteFinance.run(facId, periodId);
+        deleteCensus.run(facId, periodId);
+        deleteOccupancy.run(facId, periodId);
+        deleteKPIs.run(facId, periodId);
+      }
+    }
+
+    // Insert new finance facts
+    const insertFinance = db.prepare(`
+      INSERT INTO finance_facts
+      (facility_id, period_id, account_category, account_subcategory, department, payer_category, amount, denominator_type, source_file)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    for (const fact of financeFacts) {
+      insertFinance.run(
+        fact.facility_id,
+        fact.period_id,
+        fact.account_category,
+        fact.account_subcategory,
+        fact.department,
+        fact.payer_category,
+        fact.amount,
+        fact.denominator_type,
+        fact.source_file
+      );
+    }
+
+    // Insert census facts
+    const insertCensus = db.prepare(`
+      INSERT INTO census_facts
+      (facility_id, period_id, payer_category, days, is_skilled, is_vent, source_file)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    for (const fact of censusFacts) {
+      insertCensus.run(
+        fact.facility_id,
+        fact.period_id,
+        fact.payer_category,
+        fact.days,
+        fact.is_skilled ? 1 : 0,
+        fact.is_vent ? 1 : 0,
+        fact.source_file
+      );
+    }
+
+    // Insert occupancy facts
+    const insertOccupancy = db.prepare(`
+      INSERT OR REPLACE INTO occupancy_facts
+      (facility_id, period_id, operational_beds, licensed_beds, total_patient_days, total_unit_days, second_occupant_days, operational_occupancy, source_file)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    for (const fact of occupancyFacts) {
+      insertOccupancy.run(
+        fact.facility_id,
+        fact.period_id,
+        fact.operational_beds,
+        fact.licensed_beds,
+        fact.total_patient_days,
+        fact.total_unit_days,
+        fact.second_occupant_days,
+        fact.operational_occupancy,
+        fact.source_file
+      );
+    }
+
+    // Now compute KPIs for the uploaded data
+    console.log('Computing KPIs...');
+
+    const allFinanceFacts = db.prepare('SELECT * FROM finance_facts').all() as FinanceFact[];
+    const allCensusFacts = db.prepare('SELECT * FROM census_facts').all() as CensusFact[];
+    const allOccupancyFacts = db.prepare('SELECT * FROM occupancy_facts').all() as OccupancyFact[];
+    const facilities = db.prepare('SELECT * FROM facilities WHERE facility_id IN (' + facilityIds.map(() => '?').join(',') + ')').all(...facilityIds) as FacilityType[];
+    const periodsData = db.prepare('SELECT period_id, days_in_month FROM periods').all() as { period_id: string; days_in_month: number }[];
+    const daysInMonthMap = new Map(periodsData.map(p => [p.period_id, p.days_in_month]));
+
+    const insertKPI = db.prepare(`
+      INSERT INTO kpi_results
+      (facility_id, period_id, kpi_id, value, numerator_value, denominator_value, denominator_type, payer_scope, unit, warnings)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    let kpisComputed = 0;
+
+    for (const facility of facilities) {
+      for (const periodId of periods) {
+        const daysInMonth = daysInMonthMap.get(periodId) || 30;
+        const { results } = calculateAllKPIs(
+          allFinanceFacts,
+          allCensusFacts,
+          facility.facility_id,
+          periodId,
+          undefined,
+          allOccupancyFacts,
+          daysInMonth
+        );
+
+        for (const result of results) {
+          insertKPI.run(
+            facility.facility_id,
+            periodId,
+            result.kpi_id,
+            result.value,
+            result.numerator_value,
+            result.denominator_value,
+            result.denominator_type,
+            result.payer_scope,
+            result.unit,
+            JSON.stringify(result.warnings)
+          );
+          kpisComputed++;
+        }
+      }
+    }
+
+    // Clean up temp file
+    const fs = await import('fs');
+    fs.unlinkSync(filePath);
+
+    res.json({
+      success: true,
+      message: 'Financial data uploaded and processed successfully',
+      summary: {
+        facilitiesProcessed: facilityIds.length,
+        periodsProcessed: periods.length,
+        financeFacts: financeFacts.length,
+        censusFacts: censusFacts.length,
+        occupancyFacts: occupancyFacts.length,
+        kpisComputed
+      },
+      periods,
+      facilityIds
+    });
+
+  } catch (err: any) {
+    console.error('Upload processing error:', err);
+
+    // Clean up temp file on error
+    try {
+      const fs = await import('fs');
+      fs.unlinkSync(filePath);
+    } catch (_e) { /* ignore cleanup errors */ }
+
+    res.status(500).json({
+      error: 'Failed to process uploaded file',
+      details: err.message
+    });
+  }
+});
+
+// Get upload status/history (optional endpoint for future use)
+app.get('/api/upload/status', (_req, res) => {
+  try {
+    const periods = db.prepare(`
+      SELECT period_id, COUNT(DISTINCT facility_id) as facility_count
+      FROM finance_facts
+      GROUP BY period_id
+      ORDER BY period_id DESC
+    `).all();
+
+    const lastImport = db.prepare(`
+      SELECT MAX(computed_at) as last_computed FROM kpi_results
+    `).get() as { last_computed: string } | undefined;
+
+    res.json({
+      periods,
+      lastComputed: lastImport?.last_computed
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get upload status' });
   }
 });
 
