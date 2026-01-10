@@ -25,9 +25,7 @@ Thumbs.db
 *.log
 npm-debug.log*
 
-# Database (if local)
-*.sqlite
-*.db
+# Database temp files
 *.db-shm
 *.db-wal
 *.db.backup
