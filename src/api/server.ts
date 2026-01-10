@@ -89,6 +89,57 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', database: 'connected' });
 });
 
+// Create access_log table if not exists
+db.exec(`
+  CREATE TABLE IF NOT EXISTS access_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    timestamp TEXT NOT NULL,
+    ip_address TEXT,
+    user_agent TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// Log user access
+app.post('/api/access-log', (req, res) => {
+  try {
+    const { name, timestamp } = req.body;
+    if (!name || !timestamp) {
+      return res.status(400).json({ error: 'Name and timestamp required' });
+    }
+
+    const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    db.prepare(`
+      INSERT INTO access_log (name, timestamp, ip_address, user_agent)
+      VALUES (?, ?, ?, ?)
+    `).run(name, timestamp, ipAddress, userAgent);
+
+    console.log(`Access logged: ${name} at ${timestamp}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Failed to log access:', err);
+    res.status(500).json({ error: 'Failed to log access' });
+  }
+});
+
+// Get access logs (admin endpoint)
+app.get('/api/access-log', (_req, res) => {
+  try {
+    const logs = db.prepare(`
+      SELECT id, name, timestamp, ip_address, user_agent, created_at
+      FROM access_log
+      ORDER BY created_at DESC
+      LIMIT 100
+    `).all();
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch access logs' });
+  }
+});
+
 // Get all facilities
 app.get('/api/facilities', (_req, res) => {
   try {

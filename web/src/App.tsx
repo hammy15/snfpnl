@@ -16,7 +16,7 @@ import { PeriodComparison } from './components/PeriodComparison';
 import { AlertsDashboard } from './components/AlertsDashboard';
 import { FacilityDirectory } from './components/FacilityDirectory';
 import { AIAssistant } from './components/AIAssistant';
-import { PasswordGate } from './components/PasswordGate';
+import { LoginGate } from './components/LoginGate';
 import { DataUpload } from './components/DataUpload';
 import { FacilityManagement } from './components/FacilityManagement';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
@@ -186,9 +186,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <FavoritesProvider>
-          <PasswordGate>
+          <LoginGate>
             <AppContent />
-          </PasswordGate>
+          </LoginGate>
         </FavoritesProvider>
       </ThemeProvider>
     </QueryClientProvider>
