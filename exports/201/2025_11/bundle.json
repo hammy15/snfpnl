@@ -1,0 +1,412 @@
+{
+  "meta": {
+    "facility_id": "201",
+    "facility_name": "Libby",
+    "period": "2025-11",
+    "state": "MT",
+    "setting": "SNF",
+    "therapy_delivery_model": "UNKNOWN",
+    "accounting_basis": "accrual",
+    "source_files": [
+      "11.2025 CHC & Olympus T24M Income Statements.xlsx"
+    ],
+    "generated_at": "2026-01-07T02:18:46.001Z"
+  },
+  "denominators": {
+    "resident_days": 2231,
+    "skilled_days": 273,
+    "vent_days": 0,
+    "occupied_units": null,
+    "payer_days": {
+      "MEDICARE_A": 108,
+      "MEDICARE_ADVANTAGE": 165,
+      "MANAGED_CARE": 0,
+      "COMMERCIAL": 0,
+      "VA": 0,
+      "MEDICAID": 1592,
+      "MANAGED_MEDICAID": 0,
+      "PRIVATE_PAY": 366,
+      "HOSPICE": 0,
+      "ISNP": 0,
+      "OTHER": 0
+    }
+  },
+  "kpis": [
+    {
+      "kpi_id": "snf_total_revenue_ppd",
+      "value": 366.3299193186911,
+      "numerator_value": 817282.0499999999,
+      "denominator_value": 2231,
+      "denominator_type": "resident_days",
+      "payer_scope": "all",
+      "unit": "currency",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_skilled_revenue_psd",
+      "value": 764.1907692307692,
+      "numerator_value": 208624.08,
+      "denominator_value": 273,
+      "denominator_type": "skilled_days",
+      "payer_scope": "skilled",
+      "unit": "currency",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_medicare_a_revenue_psd",
+      "value": 782.7804629629629,
+      "numerator_value": 84540.29,
+      "denominator_value": 108,
+      "denominator_type": "payer_days",
+      "payer_scope": "MEDICARE_A",
+      "unit": "currency",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_ma_revenue_psd",
+      "value": 752.0229696969697,
+      "numerator_value": 124083.79,
+      "denominator_value": 165,
+      "denominator_type": "payer_days",
+      "payer_scope": "MEDICARE_ADVANTAGE",
+      "unit": "currency",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_medicaid_revenue_ppd",
+      "value": 294.5881407035176,
+      "numerator_value": 468984.32,
+      "denominator_value": 1592,
+      "denominator_type": "payer_days",
+      "payer_scope": "MEDICAID",
+      "unit": "currency",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_skilled_mix_pct",
+      "value": 12.236665172568355,
+      "numerator_value": 273,
+      "denominator_value": 2231,
+      "denominator_type": "resident_days",
+      "payer_scope": "skilled",
+      "unit": "percentage",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_medicare_a_mix_pct",
+      "value": 4.840878529807261,
+      "numerator_value": 108,
+      "denominator_value": 2231,
+      "denominator_type": "resident_days",
+      "payer_scope": "MEDICARE_A",
+      "unit": "percentage",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_ma_mix_pct",
+      "value": 7.395786642761093,
+      "numerator_value": 165,
+      "denominator_value": 2231,
+      "denominator_type": "resident_days",
+      "payer_scope": "MEDICARE_ADVANTAGE",
+      "unit": "percentage",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_total_cost_ppd",
+      "value": 285.23414612281493,
+      "numerator_value": 636357.3800000001,
+      "denominator_value": 2231,
+      "denominator_type": "resident_days",
+      "payer_scope": "all",
+      "unit": "currency",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_nursing_cost_ppd",
+      "value": 129.70002241147466,
+      "numerator_value": 289360.75,
+      "denominator_value": 2231,
+      "denominator_type": "resident_days",
+      "payer_scope": "all",
+      "unit": "currency",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_therapy_cost_psd",
+      "value": 150.30054945054943,
+      "numerator_value": 41032.049999999996,
+      "denominator_value": 273,
+      "denominator_type": "skilled_days",
+      "payer_scope": "skilled",
+      "unit": "currency",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_ancillary_cost_psd",
+      "value": 207.88992673992672,
+      "numerator_value": 56753.95,
+      "denominator_value": 273,
+      "denominator_type": "skilled_days",
+      "payer_scope": "skilled",
+      "unit": "currency",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_dietary_cost_ppd",
+      "value": 28.722245629762437,
+      "numerator_value": 64079.329999999994,
+      "denominator_value": 2231,
+      "denominator_type": "resident_days",
+      "payer_scope": "all",
+      "unit": "currency",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_admin_cost_ppd",
+      "value": 50.150210667861934,
+      "numerator_value": 111885.11999999998,
+      "denominator_value": 2231,
+      "denominator_type": "resident_days",
+      "payer_scope": "all",
+      "unit": "currency",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_contract_labor_pct_nursing",
+      "value": 8.81604364102595,
+      "numerator_value": 25510.17,
+      "denominator_value": 289360.75,
+      "denominator_type": "resident_days",
+      "payer_scope": "all",
+      "unit": "percentage",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_total_nurse_hprd_paid",
+      "value": null,
+      "numerator_value": 0,
+      "denominator_value": 0,
+      "denominator_type": "resident_days",
+      "payer_scope": "all",
+      "unit": "hours",
+      "warnings": [
+        "Unknown KPI: snf_total_nurse_hprd_paid",
+        "Denominator is zero for snf_total_nurse_hprd_paid",
+        "No data for numerator: total_nursing_hours"
+      ]
+    },
+    {
+      "kpi_id": "snf_operating_margin_pct",
+      "value": 22.13736004602081,
+      "numerator_value": 180924.6699999998,
+      "denominator_value": 817282.0499999999,
+      "denominator_type": "resident_days",
+      "payer_scope": "all",
+      "unit": "percentage",
+      "warnings": []
+    },
+    {
+      "kpi_id": "snf_skilled_margin_pct",
+      "value": 53.12813362676063,
+      "numerator_value": 110838.08,
+      "denominator_value": 208624.08,
+      "denominator_type": "skilled_days",
+      "payer_scope": "skilled",
+      "unit": "percentage",
+      "warnings": []
+    },
+    {
+      "kpi_id": "sl_occupancy_pct_units",
+      "value": 0,
+      "numerator_value": 0,
+      "denominator_value": 1,
+      "denominator_type": "occupied_units",
+      "payer_scope": "all",
+      "unit": "percentage",
+      "warnings": [
+        "Available units not configured; occupancy calculation incomplete",
+        "No data for numerator: occupied_units"
+      ]
+    },
+    {
+      "kpi_id": "sl_revpor",
+      "value": null,
+      "numerator_value": 817282.0499999999,
+      "denominator_value": 0,
+      "denominator_type": "occupied_units",
+      "payer_scope": "all",
+      "unit": "currency",
+      "warnings": [
+        "Denominator is zero for sl_revpor"
+      ]
+    }
+  ],
+  "benchmarks": {},
+  "anomalies": [],
+  "glossary": [
+    {
+      "term": "Per Patient Day",
+      "abbreviation": "PPD",
+      "definition": "Metric calculated using total resident/patient days as the denominator. Includes all payers.",
+      "denominator_type": "resident_days"
+    },
+    {
+      "term": "Per Skilled Day",
+      "abbreviation": "PSD",
+      "definition": "Metric calculated using skilled days as the denominator. Skilled days = Medicare A + Medicare Advantage (HMO) + Commercial + VA + ISNP days.",
+      "denominator_type": "skilled_days"
+    },
+    {
+      "term": "Per Vent Day",
+      "abbreviation": "PVD",
+      "definition": "Metric calculated using ventilator patient days as the denominator.",
+      "denominator_type": "vent_days"
+    },
+    {
+      "term": "Skilled Days",
+      "abbreviation": "SD",
+      "definition": "Total days for patients covered by skilled payers: Medicare Part A, Medicare Advantage (MA/HMO), Commercial skilled, VA skilled, and ISNP.",
+      "denominator_type": "skilled_days"
+    },
+    {
+      "term": "Resident Days",
+      "abbreviation": "RD",
+      "definition": "Total patient days across all payer types for the period.",
+      "denominator_type": "resident_days"
+    },
+    {
+      "term": "Skilled Mix",
+      "abbreviation": "SM%",
+      "definition": "Percentage of total resident days that are skilled days. Formula: (Skilled Days / Resident Days) × 100.",
+      "denominator_type": "skilled_days",
+      "payer_scope": "skilled"
+    },
+    {
+      "term": "Total Revenue PPD",
+      "abbreviation": "snf_total_revenue_ppd",
+      "definition": "Total revenue per patient day across all payers. Formula: Total Revenue / Resident Days",
+      "denominator_type": "resident_days",
+      "payer_scope": "all"
+    },
+    {
+      "term": "Skilled Revenue PSD",
+      "abbreviation": "snf_skilled_revenue_psd",
+      "definition": "Revenue from skilled payers per skilled day. Skilled = Medicare A + MA + Commercial + VA + ISNP.. Formula: Skilled Revenue / Skilled Days",
+      "denominator_type": "skilled_days",
+      "payer_scope": "skilled"
+    },
+    {
+      "term": "Medicare A Revenue PSD",
+      "abbreviation": "snf_medicare_a_revenue_psd",
+      "definition": "Medicare Part A revenue per Medicare A day. Formula: Medicare A Revenue / Medicare A Days",
+      "denominator_type": "payer_days",
+      "payer_scope": "MEDICARE_A"
+    },
+    {
+      "term": "Medicare Advantage Revenue PSD",
+      "abbreviation": "snf_ma_revenue_psd",
+      "definition": "Medicare Advantage (HMO) revenue per MA day. Formula: MA Revenue / MA Days",
+      "denominator_type": "payer_days",
+      "payer_scope": "MEDICARE_ADVANTAGE"
+    },
+    {
+      "term": "Medicaid Revenue PPD",
+      "abbreviation": "snf_medicaid_revenue_ppd",
+      "definition": "Medicaid revenue per Medicaid day. Formula: Medicaid Revenue / Medicaid Days",
+      "denominator_type": "payer_days",
+      "payer_scope": "MEDICAID"
+    },
+    {
+      "term": "Skilled Mix %",
+      "abbreviation": "snf_skilled_mix_pct",
+      "definition": "Percentage of total patient days that are skilled days. Formula: (Skilled Days / Resident Days) × 100",
+      "denominator_type": "resident_days",
+      "payer_scope": "skilled"
+    },
+    {
+      "term": "Medicare A Mix %",
+      "abbreviation": "snf_medicare_a_mix_pct",
+      "definition": "Percentage of total patient days that are Medicare A days. Formula: (Medicare A Days / Resident Days) × 100",
+      "denominator_type": "resident_days",
+      "payer_scope": "MEDICARE_A"
+    },
+    {
+      "term": "Medicare Advantage Mix %",
+      "abbreviation": "snf_ma_mix_pct",
+      "definition": "Percentage of total patient days that are MA/HMO days. Formula: (MA Days / Resident Days) × 100",
+      "denominator_type": "resident_days",
+      "payer_scope": "MEDICARE_ADVANTAGE"
+    },
+    {
+      "term": "Total Operating Cost PPD",
+      "abbreviation": "snf_total_cost_ppd",
+      "definition": "Total operating expenses per patient day. Formula: Total Operating Expenses / Resident Days",
+      "denominator_type": "resident_days",
+      "payer_scope": "all"
+    },
+    {
+      "term": "Nursing Cost PPD",
+      "abbreviation": "snf_nursing_cost_ppd",
+      "definition": "Total nursing department expenses per patient day. Formula: Total Nursing Expenses / Resident Days",
+      "denominator_type": "resident_days",
+      "payer_scope": "all"
+    },
+    {
+      "term": "Therapy Cost PSD",
+      "abbreviation": "snf_therapy_cost_psd",
+      "definition": "Therapy expenses per skilled day. Formula: Total Therapy Expenses / Skilled Days",
+      "denominator_type": "skilled_days",
+      "payer_scope": "skilled"
+    },
+    {
+      "term": "Ancillary Cost PSD",
+      "abbreviation": "snf_ancillary_cost_psd",
+      "definition": "Ancillary expenses (pharmacy, lab, radiology) per skilled day. Formula: Total Ancillary Expenses / Skilled Days",
+      "denominator_type": "skilled_days",
+      "payer_scope": "skilled"
+    },
+    {
+      "term": "Dietary Cost PPD",
+      "abbreviation": "snf_dietary_cost_ppd",
+      "definition": "Dietary expenses per patient day. Formula: Total Dietary Expenses / Resident Days",
+      "denominator_type": "resident_days",
+      "payer_scope": "all"
+    },
+    {
+      "term": "Administration Cost PPD",
+      "abbreviation": "snf_admin_cost_ppd",
+      "definition": "Administration expenses per patient day. Formula: Total Administration Expenses / Resident Days",
+      "denominator_type": "resident_days",
+      "payer_scope": "all"
+    },
+    {
+      "term": "Contract Labor % (Nursing)",
+      "abbreviation": "snf_contract_labor_pct_nursing",
+      "definition": "Percentage of nursing labor costs from agency/contract staff. Formula: (Nursing Agency/Contract Cost / Total Nursing Expenses) × 100",
+      "denominator_type": "resident_days",
+      "payer_scope": "all"
+    },
+    {
+      "term": "Operating Margin %",
+      "abbreviation": "snf_operating_margin_pct",
+      "definition": "Operating income as percentage of total revenue. Formula: ((Total Revenue - Total Operating Expenses) / Total Revenue) × 100",
+      "denominator_type": "resident_days",
+      "payer_scope": "all"
+    },
+    {
+      "term": "Skilled Margin %",
+      "abbreviation": "snf_skilled_margin_pct",
+      "definition": "Margin on skilled payer revenue after therapy and ancillary costs. Formula: ((Skilled Revenue - Therapy Cost - Ancillary Cost) / Skilled Revenue) × 100",
+      "denominator_type": "skilled_days",
+      "payer_scope": "skilled"
+    },
+    {
+      "term": "Occupancy % (Units)",
+      "abbreviation": "sl_occupancy_pct_units",
+      "definition": "Percentage of available units occupied. Formula: (Occupied Units / Available Units) × 100",
+      "denominator_type": "occupied_units",
+      "payer_scope": "all"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+.snfpnl-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.logo-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+}
+
+.logo-subtitle {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Size variants */
+.logo-sm .logo-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.logo-sm .logo-title {
+  font-size: 1rem;
+}
+
+.logo-sm .logo-subtitle {
+  font-size: 0.55rem;
+}
+
+.logo-lg .logo-icon svg {
+  width: 48px;
+  height: 48px;
+}
+
+.logo-lg .logo-title {
+  font-size: 1.75rem;
+}
+
+.logo-lg .logo-subtitle {
+  font-size: 0.8rem;
+}
+
+/* Print styles */
+@media print {
+  .logo-title {
+    background: none;
+    -webkit-text-fill-color: #1e40af;
+    color: #1e40af;
+  }
+}

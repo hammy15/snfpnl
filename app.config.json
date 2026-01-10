@@ -1,0 +1,43 @@
+{
+  "facilities": [],
+  "payer_alias_map": {
+    "Medicare Revenue": "MEDICARE_A",
+    "Medicare Days": "MEDICARE_A",
+    "HMO Revenue": "MEDICARE_ADVANTAGE",
+    "HMO Days": "MEDICARE_ADVANTAGE",
+    "ISNP Revenue": "ISNP",
+    "ISNP Days": "ISNP",
+    "Veterans Revenue": "VA",
+    "Veterans Days": "VA",
+    "Veterans Revenue - Skilled": "VA",
+    "Veterans Skilled Days": "VA",
+    "Medicaid Revenue": "MEDICAID",
+    "Medicaid Days": "MEDICAID",
+    "Managed Medicaid Revenue": "MANAGED_MEDICAID",
+    "Managed Medicaid Days": "MANAGED_MEDICAID",
+    "Managed Medicaid Revenue - Skilled": "MANAGED_MEDICAID",
+    "Managed Medicaid Skilled Days": "MANAGED_MEDICAID",
+    "Medicaid Complex Revenue": "MEDICAID",
+    "Medicaid Complex Days": "MEDICAID",
+    "Medicaid Bariatric Revenue": "MEDICAID",
+    "Medicaid Bariatric Days": "MEDICAID",
+    "Private Revenue": "PRIVATE_PAY",
+    "Private Days": "PRIVATE_PAY",
+    "Hospice Revenue": "HOSPICE",
+    "Hospice Days": "HOSPICE",
+    "Commercial": "COMMERCIAL"
+  },
+  "denominator_alias_map": {
+    "Total Patient Days": "resident_days",
+    "Total Non-Skilled Days": "non_skilled_days",
+    "Total Skilled Days": "skilled_days",
+    "Total Vent Days": "vent_days",
+    "Medicaid Days": "medicaid_days",
+    "Medicare Days": "med_a_days",
+    "HMO Days": "ma_days",
+    "Private Days": "private_days",
+    "Hospice Days": "hospice_days"
+  },
+  "skilled_payers": ["MEDICARE_A", "MEDICARE_ADVANTAGE", "COMMERCIAL", "VA", "ISNP"],
+  "data_source_path": "/Users/hammy/Desktop/CHC Financial Review"
+}
