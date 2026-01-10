@@ -570,12 +570,51 @@ async function generateAIResponse(
     };
   }
 
-  // Add portfolio summary
+  // Add portfolio summary with actual performance data
   const snfFacilities = facilities.filter(f => f.setting === 'SNF');
+
+  // Get margin data for all facilities
+  const marginData = allKPIs
+    .filter(k => k.kpi_id === 'snf_operating_margin_pct' && k.value !== null)
+    .sort((a, b) => (b.value || 0) - (a.value || 0));
+
+  const topPerformers = marginData.slice(0, 5).map(f => ({
+    name: f.name || f.facility_id,
+    margin: f.value,
+    state: f.state
+  }));
+
+  const bottomPerformers = marginData.slice(-5).reverse().map(f => ({
+    name: f.name || f.facility_id,
+    margin: f.value,
+    state: f.state
+  }));
+
+  const avgMargin = marginData.length > 0
+    ? marginData.reduce((sum, k) => sum + (k.value || 0), 0) / marginData.length
+    : null;
+
+  // Get other key metrics
+  const skilledMixData = allKPIs.filter(k => k.kpi_id === 'snf_skilled_mix_pct' && k.value !== null);
+  const avgSkilledMix = skilledMixData.length > 0
+    ? skilledMixData.reduce((sum, k) => sum + (k.value || 0), 0) / skilledMixData.length
+    : null;
+
+  const contractLaborData = allKPIs.filter(k => k.kpi_id === 'snf_contract_labor_pct_nursing' && k.value !== null);
+  const avgContractLabor = contractLaborData.length > 0
+    ? contractLaborData.reduce((sum, k) => sum + (k.value || 0), 0) / contractLaborData.length
+    : null;
+
   context.portfolioSummary = {
     totalFacilities: facilities.length,
     snfCount: snfFacilities.length,
-    states: [...new Set(facilities.map(f => f.state))].length
+    states: [...new Set(facilities.map(f => f.state))],
+    avgMargin: avgMargin?.toFixed(1),
+    avgSkilledMix: avgSkilledMix?.toFixed(1),
+    avgContractLabor: avgContractLabor?.toFixed(1),
+    topPerformers,
+    bottomPerformers,
+    facilitiesNeedingAttention: marginData.filter(f => f.value < 5).length
   };
 
   try {
