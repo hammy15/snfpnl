@@ -20,6 +20,7 @@ import { LoginGate } from './components/LoginGate';
 import { DataUpload } from './components/DataUpload';
 import { FacilityManagement } from './components/FacilityManagement';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
+import { UserGuide } from './components/UserGuide';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -54,6 +55,7 @@ function AppContent() {
   const [settingFilter, setSettingFilter] = useState<SettingFilter>('all');
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const { toggleTheme } = useTheme();
 
   const { data: facilities = [] } = useQuery({
@@ -90,6 +92,7 @@ function AppContent() {
         isAIOpen={isAIOpen}
         facilities={facilities}
         onFacilitySelect={handleFacilitySelect}
+        onShowGuide={() => setIsGuideOpen(true)}
       />
       <main className="main-content">
         {currentView === 'dashboard' && (
@@ -176,6 +179,10 @@ function AppContent() {
       <KeyboardShortcutsModal
         isOpen={isShortcutsOpen}
         onClose={() => setIsShortcutsOpen(false)}
+      />
+      <UserGuide
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
       />
     </div>
   );

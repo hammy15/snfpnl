@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { LayoutDashboard, List, Map, Wrench, Bot, ClipboardCheck, DollarSign, FileText, GitCompare, Bell, BookOpen, Upload, Settings } from 'lucide-react';
+import { LayoutDashboard, List, Map, Wrench, Bot, ClipboardCheck, DollarSign, FileText, GitCompare, Bell, BookOpen, Upload, Settings, HelpCircle } from 'lucide-react';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { FacilitySearch } from './FacilitySearch';
 import { MobileNav } from './MobileNav';
@@ -25,6 +25,7 @@ interface HeaderProps {
   isAIOpen: boolean;
   facilities: Facility[];
   onFacilitySelect: (facilityId: string) => void;
+  onShowGuide?: () => void;
 }
 
 async function fetchPeriods(): Promise<string[]> {
@@ -33,7 +34,7 @@ async function fetchPeriods(): Promise<string[]> {
   return res.json();
 }
 
-export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange, onToggleAI, isAIOpen, facilities, onFacilitySelect }: HeaderProps) {
+export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange, onToggleAI, isAIOpen, facilities, onFacilitySelect, onShowGuide }: HeaderProps) {
   const { data: periods = [] } = useQuery({
     queryKey: ['periods'],
     queryFn: fetchPeriods,
@@ -148,6 +149,13 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
             ))}
           </select>
           <ExcelExport periodId={selectedPeriod} />
+          <button
+            className="help-btn"
+            onClick={onShowGuide}
+            title="User Guide"
+          >
+            <HelpCircle size={20} />
+          </button>
           <ThemeToggle />
           <button
             className={`ai-toggle ${isAIOpen ? 'active' : ''}`}
