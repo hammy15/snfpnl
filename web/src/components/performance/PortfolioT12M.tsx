@@ -30,10 +30,37 @@ interface TrendPoint {
   facilitiesCount: number;
 }
 
+interface APIFacility {
+  facility_id: string;
+  name: string;
+  setting: string;
+  state?: string;
+  total_revenue?: number;
+  total_expenses?: number;
+  ebitdar_pct?: number;
+}
+
+function transformFacility(f: APIFacility): FacilityData {
+  return {
+    facility_id: f.facility_id,
+    name: f.name,
+    setting: f.setting,
+    state: f.state || '',
+    margin: f.ebitdar_pct ?? null,
+    revenue: f.total_revenue ?? null,
+    cost: f.total_expenses ?? null,
+    occupancy: null, // Not available in this API
+    skilledMix: null // Not available in this API
+  };
+}
+
 async function fetchPortfolioSummary(periodId: string): Promise<{ facilities: FacilityData[], trends: TrendPoint[] }> {
   const res = await fetch(`https://snfpnl.onrender.com/api/financials/summary/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch portfolio data');
   const data = await res.json();
+
+  // Transform facilities to expected format
+  const facilities: FacilityData[] = (data.facilities || []).map(transformFacility);
 
   // Get trailing 12 months of data
   const periods = generateT12MPeriods(periodId);
@@ -45,13 +72,14 @@ async function fetchPortfolioSummary(periodId: string): Promise<{ facilities: Fa
 
   const trendsData = await Promise.all(trendsPromises);
   const trends: TrendPoint[] = trendsData
-    .filter((t): t is { period_id: string; data: { facilities: FacilityData[] } } => t !== null)
+    .filter((t): t is { period_id: string; data: { facilities: APIFacility[] } } => t !== null)
     .map(t => {
-      const facilities = t.data.facilities || [];
-      const withMargin = facilities.filter((f: FacilityData) => f.margin !== null);
-      const withRevenue = facilities.filter((f: FacilityData) => f.revenue !== null);
-      const withCost = facilities.filter((f: FacilityData) => f.cost !== null);
-      const withOccupancy = facilities.filter((f: FacilityData) => f.occupancy !== null);
+      const rawFacilities = t.data.facilities || [];
+      const mapped = rawFacilities.map(transformFacility);
+      const withMargin = mapped.filter((f: FacilityData) => f.margin !== null);
+      const withRevenue = mapped.filter((f: FacilityData) => f.revenue !== null);
+      const withCost = mapped.filter((f: FacilityData) => f.cost !== null);
+      const withOccupancy = mapped.filter((f: FacilityData) => f.occupancy !== null);
 
       return {
         period_id: t.period_id,
@@ -59,13 +87,13 @@ async function fetchPortfolioSummary(periodId: string): Promise<{ facilities: Fa
         avgRevenue: withRevenue.length > 0 ? withRevenue.reduce((sum: number, f: FacilityData) => sum + (f.revenue || 0), 0) / withRevenue.length : 0,
         avgCost: withCost.length > 0 ? withCost.reduce((sum: number, f: FacilityData) => sum + (f.cost || 0), 0) / withCost.length : 0,
         avgOccupancy: withOccupancy.length > 0 ? withOccupancy.reduce((sum: number, f: FacilityData) => sum + (f.occupancy || 0), 0) / withOccupancy.length : 0,
-        facilitiesCount: facilities.length
+        facilitiesCount: mapped.length
       };
     })
     .sort((a, b) => a.period_id.localeCompare(b.period_id));
 
   return {
-    facilities: data.facilities || [],
+    facilities,
     trends
   };
 }
