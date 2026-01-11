@@ -26,6 +26,60 @@ interface ScenarioInputs {
   contractLaborChange: number;
 }
 
+interface SliderInputProps {
+  label: string;
+  value: number;
+  onChange: (val: number) => void;
+  min: number;
+  max: number;
+  unit: string;
+  description: string;
+}
+
+function SliderInput({ label, value, onChange, min, max, unit, description }: SliderInputProps) {
+  return (
+    <div className="mb-4">
+      <div className="flex justify-between items-center mb-2">
+        <div>
+          <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{label}</span>
+          <p className="text-xs text-muted">{description}</p>
+        </div>
+        <span className={`text-lg font-bold ${value > 0 ? 'text-success' : value < 0 ? 'text-danger' : 'text-muted'}`}>
+          {value > 0 ? '+' : ''}{value}{unit}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={1}
+        value={value}
+        onChange={(e) => onChange(parseInt(e.target.value))}
+        style={{
+          width: '100%',
+          height: '8px',
+          borderRadius: '4px',
+          background: `linear-gradient(to right,
+            var(--danger) 0%,
+            var(--danger) ${((0 - min) / (max - min)) * 100}%,
+            rgba(255,255,255,0.2) ${((0 - min) / (max - min)) * 100}%,
+            rgba(255,255,255,0.2) ${((value - min) / (max - min)) * 100}%,
+            var(--success) ${((value - min) / (max - min)) * 100}%,
+            var(--success) 100%)`,
+          cursor: 'pointer',
+          appearance: 'none',
+          outline: 'none',
+        }}
+      />
+      <div className="flex justify-between text-xs text-muted mt-1">
+        <span>{min}{unit}</span>
+        <span>0{unit}</span>
+        <span>{max}{unit}</span>
+      </div>
+    </div>
+  );
+}
+
 export function WhatIfScenario({ facilityId, periodId }: WhatIfScenarioProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [inputs, setInputs] = useState<ScenarioInputs>({
@@ -74,64 +128,6 @@ export function WhatIfScenario({ facilityId, periodId }: WhatIfScenarioProps) {
   const handleCalculate = () => {
     scenarioMutation.mutate(inputs);
   };
-
-  const SliderInput = ({
-    label,
-    value,
-    onChange,
-    min,
-    max,
-    unit,
-    description,
-  }: {
-    label: string;
-    value: number;
-    onChange: (val: number) => void;
-    min: number;
-    max: number;
-    unit: string;
-    description: string;
-  }) => (
-    <div className="mb-4">
-      <div className="flex justify-between items-center mb-2">
-        <div>
-          <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{label}</span>
-          <p className="text-xs text-muted">{description}</p>
-        </div>
-        <span className={`text-lg font-bold ${value > 0 ? 'text-success' : value < 0 ? 'text-danger' : 'text-muted'}`}>
-          {value > 0 ? '+' : ''}{value}{unit}
-        </span>
-      </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={1}
-        value={value}
-        onChange={(e) => onChange(parseInt(e.target.value))}
-        style={{
-          width: '100%',
-          height: '8px',
-          borderRadius: '4px',
-          background: `linear-gradient(to right,
-            var(--danger) 0%,
-            var(--danger) ${((0 - min) / (max - min)) * 100}%,
-            rgba(255,255,255,0.2) ${((0 - min) / (max - min)) * 100}%,
-            rgba(255,255,255,0.2) ${((value - min) / (max - min)) * 100}%,
-            var(--success) ${((value - min) / (max - min)) * 100}%,
-            var(--success) 100%)`,
-          cursor: 'pointer',
-          appearance: 'none',
-          outline: 'none',
-        }}
-      />
-      <div className="flex justify-between text-xs text-muted mt-1">
-        <span>{min}{unit}</span>
-        <span>0{unit}</span>
-        <span>{max}{unit}</span>
-      </div>
-    </div>
-  );
 
   return (
     <section className="kpi-section">

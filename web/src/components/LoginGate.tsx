@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import './LoginGate.css';
 
 interface LoginGateProps {
@@ -8,31 +8,30 @@ interface LoginGateProps {
 const CORRECT_PASSWORD = 'jockibox26';
 const AUTH_KEY = 'snfpnl_auth';
 
+// Check auth status synchronously during initialization
+function getInitialAuthState(): boolean {
+  const auth = localStorage.getItem(AUTH_KEY);
+  if (auth) {
+    try {
+      const { timestamp } = JSON.parse(auth);
+      // Session valid for 24 hours
+      if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
+        return true;
+      } else {
+        localStorage.removeItem(AUTH_KEY);
+      }
+    } catch {
+      localStorage.removeItem(AUTH_KEY);
+    }
+  }
+  return false;
+}
+
 export function LoginGate({ children }: LoginGateProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(getInitialAuthState);
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    // Check if already authenticated
-    const auth = localStorage.getItem(AUTH_KEY);
-    if (auth) {
-      try {
-        const { timestamp } = JSON.parse(auth);
-        // Session valid for 24 hours
-        if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
-          setIsAuthenticated(true);
-        } else {
-          localStorage.removeItem(AUTH_KEY);
-        }
-      } catch {
-        localStorage.removeItem(AUTH_KEY);
-      }
-    }
-    setIsLoading(false);
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,14 +70,6 @@ export function LoginGate({ children }: LoginGateProps) {
 
     setIsAuthenticated(true);
   };
-
-  if (isLoading) {
-    return (
-      <div className="login-gate">
-        <div className="login-loading">Loading...</div>
-      </div>
-    );
-  }
 
   if (isAuthenticated) {
     return <>{children}</>;

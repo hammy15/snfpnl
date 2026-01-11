@@ -263,7 +263,7 @@ export function Dashboard({ periodId, settingFilter, onSettingFilterChange, onFa
     }));
 
     return { filteredTopPerformers: top, filteredBottomPerformers: bottom, totalCount: count, oneThirdCount: thirdCount };
-  }, [filteredKPIs, currentBenchmark, settingFilter, financialSummary]);
+  }, [filteredKPIs, financialSummary]);
 
   // Generate insights based on filtered data
   const insights = useMemo(() => {

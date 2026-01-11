@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import './PasswordGate.css';
 
@@ -10,21 +10,23 @@ interface PasswordGateProps {
 const APP_PASSWORD = 'snfpnl2025';
 const AUTH_KEY = 'snfpnl_authenticated';
 
+// Extend window type for logout function
+declare global {
+  interface Window {
+    snfpnlLogout?: () => void;
+  }
+}
+
+// Check auth status synchronously during initialization
+function getInitialAuthState(): boolean {
+  return localStorage.getItem(AUTH_KEY) === 'true';
+}
+
 export function PasswordGate({ children }: PasswordGateProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(getInitialAuthState);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Check if already authenticated
-    const auth = localStorage.getItem(AUTH_KEY);
-    if (auth === 'true') {
-      setIsAuthenticated(true);
-    }
-    setIsLoading(false);
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,29 +41,19 @@ export function PasswordGate({ children }: PasswordGateProps) {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     localStorage.removeItem(AUTH_KEY);
     setIsAuthenticated(false);
     setPassword('');
-  };
+  }, []);
 
   // Expose logout function globally for use in header
   useEffect(() => {
-    (window as any).snfpnlLogout = handleLogout;
+    window.snfpnlLogout = handleLogout;
     return () => {
-      delete (window as any).snfpnlLogout;
+      delete window.snfpnlLogout;
     };
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="password-gate">
-        <div className="password-gate-card">
-          <div className="loading-spinner" />
-        </div>
-      </div>
-    );
-  }
+  }, [handleLogout]);
 
   if (isAuthenticated) {
     return <>{children}</>;

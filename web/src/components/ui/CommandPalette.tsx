@@ -20,25 +20,26 @@ interface CommandPaletteProps {
   facilities?: Array<{ id: number; name: string; setting: string }>;
 }
 
+// Load recent commands synchronously during initialization
+function getInitialRecentCommands(): string[] {
+  const stored = localStorage.getItem('commandPalette_recent');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      // Ignore parse errors
+    }
+  }
+  return [];
+}
+
 export function CommandPalette({ facilities = [] }: CommandPaletteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [recentCommands, setRecentCommands] = useState<string[]>([]);
+  const [recentCommands, setRecentCommands] = useState(getInitialRecentCommands);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
-
-  // Load recent commands from localStorage
-  useEffect(() => {
-    const stored = localStorage.getItem('commandPalette_recent');
-    if (stored) {
-      try {
-        setRecentCommands(JSON.parse(stored));
-      } catch {
-        // Ignore parse errors
-      }
-    }
-  }, []);
 
   // Keyboard shortcut to open palette
   useEffect(() => {
@@ -246,10 +247,11 @@ export function CommandPalette({ facilities = [] }: CommandPaletteProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, filteredCommands, selectedIndex, addToRecent]);
 
-  // Reset selection when query changes
-  useEffect(() => {
+  // Handler to update query and reset selection
+  const handleQueryChange = useCallback((newQuery: string) => {
+    setQuery(newQuery);
     setSelectedIndex(0);
-  }, [query]);
+  }, []);
 
   if (!isOpen) {
     return (
@@ -321,7 +323,7 @@ export function CommandPalette({ facilities = [] }: CommandPaletteProps) {
             ref={inputRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleQueryChange(e.target.value)}
             placeholder="Search commands, facilities, or actions..."
             style={{
               flex: 1,
