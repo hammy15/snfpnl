@@ -101,6 +101,90 @@ db.exec(`
   )
 `);
 
+// Create audit_log table for tracking all user actions
+db.exec(`
+  CREATE TABLE IF NOT EXISTS audit_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_name TEXT NOT NULL,
+    action TEXT NOT NULL,
+    entity_type TEXT,
+    entity_id TEXT,
+    details TEXT,
+    ip_address TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// Create annotations table for user notes on data points
+db.exec(`
+  CREATE TABLE IF NOT EXISTS annotations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    facility_id TEXT NOT NULL,
+    period_id TEXT,
+    kpi_id TEXT,
+    note TEXT NOT NULL,
+    author TEXT NOT NULL,
+    annotation_type TEXT DEFAULT 'note',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// Create scheduled_reports table for email reports
+db.exec(`
+  CREATE TABLE IF NOT EXISTS scheduled_reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    report_type TEXT NOT NULL,
+    facility_ids TEXT,
+    recipients TEXT NOT NULL,
+    schedule TEXT NOT NULL,
+    last_sent TEXT,
+    is_active INTEGER DEFAULT 1,
+    created_by TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// Create user_preferences table
+db.exec(`
+  CREATE TABLE IF NOT EXISTS user_preferences (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_name TEXT NOT NULL UNIQUE,
+    preferences TEXT NOT NULL,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// Create data_archive table for archiving all data pulls
+db.exec(`
+  CREATE TABLE IF NOT EXISTS data_archive (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    archive_type TEXT NOT NULL,
+    facility_id TEXT,
+    period_id TEXT,
+    data_snapshot TEXT NOT NULL,
+    requested_by TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// Create kpi_goals table for goal tracking
+db.exec(`
+  CREATE TABLE IF NOT EXISTS kpi_goals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    facility_id TEXT NOT NULL,
+    kpi_id TEXT NOT NULL,
+    target_value REAL NOT NULL,
+    target_date TEXT,
+    notes TEXT,
+    status TEXT DEFAULT 'active',
+    created_by TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(facility_id, kpi_id)
+  )
+`);
+
 // Log user access
 app.post('/api/access-log', (req, res) => {
   try {
@@ -137,6 +221,388 @@ app.get('/api/access-log', (_req, res) => {
     res.json(logs);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch access logs' });
+  }
+});
+
+// ============================================================================
+// AUDIT LOG ENDPOINTS
+// ============================================================================
+
+// Log an audit event
+app.post('/api/audit-log', (req, res) => {
+  try {
+    const { userName, action, entityType, entityId, details } = req.body;
+    const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+
+    db.prepare(`
+      INSERT INTO audit_log (user_name, action, entity_type, entity_id, details, ip_address)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(userName, action, entityType, entityId, JSON.stringify(details), ipAddress);
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to log audit event' });
+  }
+});
+
+// Get audit logs
+app.get('/api/audit-log', (req, res) => {
+  try {
+    const { entityType, entityId, limit = 100 } = req.query;
+    let query = 'SELECT * FROM audit_log';
+    const params: any[] = [];
+
+    if (entityType) {
+      query += ' WHERE entity_type = ?';
+      params.push(entityType);
+      if (entityId) {
+        query += ' AND entity_id = ?';
+        params.push(entityId);
+      }
+    }
+
+    query += ' ORDER BY created_at DESC LIMIT ?';
+    params.push(Number(limit));
+
+    const logs = db.prepare(query).all(...params);
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch audit logs' });
+  }
+});
+
+// ============================================================================
+// ANNOTATIONS ENDPOINTS
+// ============================================================================
+
+// Create annotation
+app.post('/api/annotations', (req, res) => {
+  try {
+    const { facilityId, periodId, kpiId, note, author, annotationType = 'note' } = req.body;
+
+    const result = db.prepare(`
+      INSERT INTO annotations (facility_id, period_id, kpi_id, note, author, annotation_type)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(facilityId, periodId, kpiId, note, author, annotationType);
+
+    res.json({ id: result.lastInsertRowid, success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create annotation' });
+  }
+});
+
+// Get annotations
+app.get('/api/annotations', (req, res) => {
+  try {
+    const { facilityId, periodId, kpiId } = req.query;
+    let query = 'SELECT * FROM annotations WHERE 1=1';
+    const params: any[] = [];
+
+    if (facilityId) {
+      query += ' AND facility_id = ?';
+      params.push(facilityId);
+    }
+    if (periodId) {
+      query += ' AND period_id = ?';
+      params.push(periodId);
+    }
+    if (kpiId) {
+      query += ' AND kpi_id = ?';
+      params.push(kpiId);
+    }
+
+    query += ' ORDER BY created_at DESC';
+    const annotations = db.prepare(query).all(...params);
+    res.json(annotations);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch annotations' });
+  }
+});
+
+// Update annotation
+app.put('/api/annotations/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { note, annotationType } = req.body;
+
+    db.prepare(`
+      UPDATE annotations SET note = ?, annotation_type = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(note, annotationType, id);
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update annotation' });
+  }
+});
+
+// Delete annotation
+app.delete('/api/annotations/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    db.prepare('DELETE FROM annotations WHERE id = ?').run(id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete annotation' });
+  }
+});
+
+// ============================================================================
+// KPI GOALS ENDPOINTS
+// ============================================================================
+
+// Set/update KPI goal
+app.post('/api/kpi-goals', (req, res) => {
+  try {
+    const { facilityId, kpiId, targetValue, targetDate, notes, createdBy } = req.body;
+
+    db.prepare(`
+      INSERT INTO kpi_goals (facility_id, kpi_id, target_value, target_date, notes, created_by)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(facility_id, kpi_id) DO UPDATE SET
+        target_value = excluded.target_value,
+        target_date = excluded.target_date,
+        notes = excluded.notes
+    `).run(facilityId, kpiId, targetValue, targetDate, notes, createdBy);
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save KPI goal' });
+  }
+});
+
+// Get KPI goals for a facility
+app.get('/api/kpi-goals/:facilityId', (req, res) => {
+  try {
+    const { facilityId } = req.params;
+    const goals = db.prepare(`
+      SELECT * FROM kpi_goals WHERE facility_id = ? AND status = 'active'
+    `).all(facilityId);
+    res.json(goals);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch KPI goals' });
+  }
+});
+
+// Delete KPI goal
+app.delete('/api/kpi-goals/:facilityId/:kpiId', (req, res) => {
+  try {
+    const { facilityId, kpiId } = req.params;
+    db.prepare('DELETE FROM kpi_goals WHERE facility_id = ? AND kpi_id = ?').run(facilityId, kpiId);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete KPI goal' });
+  }
+});
+
+// ============================================================================
+// DATA ARCHIVE ENDPOINTS
+// ============================================================================
+
+// Archive data snapshot
+app.post('/api/data-archive', (req, res) => {
+  try {
+    const { archiveType, facilityId, periodId, dataSnapshot, requestedBy } = req.body;
+
+    const result = db.prepare(`
+      INSERT INTO data_archive (archive_type, facility_id, period_id, data_snapshot, requested_by)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(archiveType, facilityId, periodId, JSON.stringify(dataSnapshot), requestedBy);
+
+    res.json({ id: result.lastInsertRowid, success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to archive data' });
+  }
+});
+
+// Get archived data
+app.get('/api/data-archive', (req, res) => {
+  try {
+    const { archiveType, facilityId, limit = 50 } = req.query;
+    let query = 'SELECT id, archive_type, facility_id, period_id, requested_by, created_at FROM data_archive WHERE 1=1';
+    const params: any[] = [];
+
+    if (archiveType) {
+      query += ' AND archive_type = ?';
+      params.push(archiveType);
+    }
+    if (facilityId) {
+      query += ' AND facility_id = ?';
+      params.push(facilityId);
+    }
+
+    query += ' ORDER BY created_at DESC LIMIT ?';
+    params.push(Number(limit));
+
+    const archives = db.prepare(query).all(...params);
+    res.json(archives);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch archives' });
+  }
+});
+
+// Get specific archive by ID
+app.get('/api/data-archive/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const archive = db.prepare('SELECT * FROM data_archive WHERE id = ?').get(id);
+    if (archive) {
+      (archive as any).data_snapshot = JSON.parse((archive as any).data_snapshot);
+    }
+    res.json(archive);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch archive' });
+  }
+});
+
+// ============================================================================
+// USER PREFERENCES ENDPOINTS
+// ============================================================================
+
+// Save user preferences
+app.post('/api/user-preferences', (req, res) => {
+  try {
+    const { userName, preferences } = req.body;
+
+    db.prepare(`
+      INSERT INTO user_preferences (user_name, preferences)
+      VALUES (?, ?)
+      ON CONFLICT(user_name) DO UPDATE SET
+        preferences = excluded.preferences,
+        updated_at = CURRENT_TIMESTAMP
+    `).run(userName, JSON.stringify(preferences));
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save preferences' });
+  }
+});
+
+// Get user preferences
+app.get('/api/user-preferences/:userName', (req, res) => {
+  try {
+    const { userName } = req.params;
+    const prefs = db.prepare('SELECT * FROM user_preferences WHERE user_name = ?').get(userName);
+    if (prefs) {
+      (prefs as any).preferences = JSON.parse((prefs as any).preferences);
+    }
+    res.json(prefs || { preferences: {} });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch preferences' });
+  }
+});
+
+// ============================================================================
+// SCHEDULED REPORTS ENDPOINTS
+// ============================================================================
+
+// Create scheduled report
+app.post('/api/scheduled-reports', (req, res) => {
+  try {
+    const { name, reportType, facilityIds, recipients, schedule, createdBy } = req.body;
+
+    const result = db.prepare(`
+      INSERT INTO scheduled_reports (name, report_type, facility_ids, recipients, schedule, created_by)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(name, reportType, JSON.stringify(facilityIds), JSON.stringify(recipients), schedule, createdBy);
+
+    res.json({ id: result.lastInsertRowid, success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create scheduled report' });
+  }
+});
+
+// Get scheduled reports
+app.get('/api/scheduled-reports', (_req, res) => {
+  try {
+    const reports = db.prepare('SELECT * FROM scheduled_reports ORDER BY created_at DESC').all();
+    res.json(reports.map((r: any) => ({
+      ...r,
+      facility_ids: JSON.parse(r.facility_ids || '[]'),
+      recipients: JSON.parse(r.recipients || '[]')
+    })));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch scheduled reports' });
+  }
+});
+
+// Update scheduled report
+app.put('/api/scheduled-reports/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, reportType, facilityIds, recipients, schedule, isActive } = req.body;
+
+    db.prepare(`
+      UPDATE scheduled_reports
+      SET name = ?, report_type = ?, facility_ids = ?, recipients = ?, schedule = ?, is_active = ?
+      WHERE id = ?
+    `).run(name, reportType, JSON.stringify(facilityIds), JSON.stringify(recipients), schedule, isActive ? 1 : 0, id);
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update scheduled report' });
+  }
+});
+
+// Delete scheduled report
+app.delete('/api/scheduled-reports/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    db.prepare('DELETE FROM scheduled_reports WHERE id = ?').run(id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete scheduled report' });
+  }
+});
+
+// ============================================================================
+// FACILITY COMPARISON ENDPOINT
+// ============================================================================
+
+// Compare multiple facilities
+app.post('/api/facility-comparison', (req, res) => {
+  try {
+    const { facilityIds, periodId, kpiIds } = req.body;
+
+    if (!facilityIds || facilityIds.length < 2) {
+      return res.status(400).json({ error: 'At least 2 facilities required for comparison' });
+    }
+
+    const placeholders = facilityIds.map(() => '?').join(',');
+    const kpiPlaceholders = kpiIds ? kpiIds.map(() => '?').join(',') : null;
+
+    let query = `
+      SELECT kr.facility_id, f.name as facility_name, kr.kpi_id, kr.value, kr.unit
+      FROM kpi_results kr
+      JOIN facilities f ON kr.facility_id = f.facility_id
+      WHERE kr.facility_id IN (${placeholders}) AND kr.period_id = ?
+    `;
+    const params = [...facilityIds, periodId];
+
+    if (kpiPlaceholders) {
+      query += ` AND kr.kpi_id IN (${kpiPlaceholders})`;
+      params.push(...kpiIds);
+    }
+
+    query += ' ORDER BY kr.kpi_id, f.name';
+
+    const results = db.prepare(query).all(...params);
+
+    // Group by KPI
+    const comparison: Record<string, any> = {};
+    for (const row of results as any[]) {
+      if (!comparison[row.kpi_id]) {
+        comparison[row.kpi_id] = { kpiId: row.kpi_id, unit: row.unit, facilities: {} };
+      }
+      comparison[row.kpi_id].facilities[row.facility_id] = {
+        name: row.facility_name,
+        value: row.value
+      };
+    }
+
+    res.json(Object.values(comparison));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to compare facilities' });
   }
 });
 

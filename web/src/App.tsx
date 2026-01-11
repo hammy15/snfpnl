@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { FavoritesProvider } from './contexts/FavoritesContext';
+import { RecentFacilitiesProvider } from './contexts/RecentFacilitiesContext';
+import { SavedFiltersProvider } from './contexts/SavedFiltersContext';
+import './styles/print.css';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
@@ -55,7 +58,15 @@ function AppContent() {
   const [settingFilter, setSettingFilter] = useState<SettingFilter>('all');
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
-  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(() => {
+    // Show guide on first visit
+    const hasSeenGuide = localStorage.getItem('snfpnl_has_seen_guide');
+    if (!hasSeenGuide) {
+      localStorage.setItem('snfpnl_has_seen_guide', 'true');
+      return true;
+    }
+    return false;
+  });
   const { toggleTheme } = useTheme();
 
   const { data: facilities = [] } = useQuery({
@@ -193,9 +204,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <FavoritesProvider>
-          <LoginGate>
-            <AppContent />
-          </LoginGate>
+          <RecentFacilitiesProvider>
+            <SavedFiltersProvider>
+              <LoginGate>
+                <AppContent />
+              </LoginGate>
+            </SavedFiltersProvider>
+          </RecentFacilitiesProvider>
         </FavoritesProvider>
       </ThemeProvider>
     </QueryClientProvider>
