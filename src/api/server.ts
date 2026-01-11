@@ -180,10 +180,16 @@ db.exec(`
     notes TEXT,
     status TEXT DEFAULT 'active',
     created_by TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(facility_id, kpi_id)
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+// Create unique index for kpi_goals if not exists
+try {
+  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_kpi_goals_facility_kpi ON kpi_goals(facility_id, kpi_id)`);
+} catch (e) {
+  // Index might already exist
+}
 
 // Log user access
 app.post('/api/access-log', (req, res) => {
@@ -356,18 +362,30 @@ app.post('/api/kpi-goals', (req, res) => {
   try {
     const { facilityId, kpiId, targetValue, targetDate, notes, createdBy } = req.body;
 
-    db.prepare(`
-      INSERT INTO kpi_goals (facility_id, kpi_id, target_value, target_date, notes, created_by)
-      VALUES (?, ?, ?, ?, ?, ?)
-      ON CONFLICT(facility_id, kpi_id) DO UPDATE SET
-        target_value = excluded.target_value,
-        target_date = excluded.target_date,
-        notes = excluded.notes
-    `).run(facilityId, kpiId, targetValue, targetDate, notes, createdBy);
+    // Check if goal exists
+    const existing = db.prepare(
+      'SELECT id FROM kpi_goals WHERE facility_id = ? AND kpi_id = ?'
+    ).get(facilityId, kpiId);
+
+    if (existing) {
+      // Update existing goal
+      db.prepare(`
+        UPDATE kpi_goals
+        SET target_value = ?, target_date = ?, notes = ?, status = 'active'
+        WHERE facility_id = ? AND kpi_id = ?
+      `).run(targetValue, targetDate, notes, facilityId, kpiId);
+    } else {
+      // Insert new goal
+      db.prepare(`
+        INSERT INTO kpi_goals (facility_id, kpi_id, target_value, target_date, notes, created_by)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(facilityId, kpiId, targetValue, targetDate, notes, createdBy);
+    }
 
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to save KPI goal' });
+    console.error('KPI goals error:', err);
+    res.status(500).json({ error: 'Failed to save KPI goal', details: String(err) });
   }
 });
 
