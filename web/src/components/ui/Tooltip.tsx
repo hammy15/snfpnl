@@ -29,6 +29,7 @@ export function Tooltip({ content, children, position = 'top' }: TooltipProps) {
 }
 
 // KPI descriptions for tooltips
+// eslint-disable-next-line react-refresh/only-export-components
 export const KPI_TOOLTIPS: Record<string, string> = {
   'snf_occupancy_pct': 'Percentage of available beds that are occupied. Higher is generally better for revenue.',
   'snf_skilled_mix_pct': 'Percentage of patients covered by Medicare or managed care vs Medicaid. Higher skilled mix = higher reimbursement.',

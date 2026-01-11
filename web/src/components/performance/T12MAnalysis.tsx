@@ -65,9 +65,10 @@ function getPresetMonths(preset: DateRangePreset, currentPeriod: string): number
     case 'T12M': return 12;
     case 'T6M': return 6;
     case 'T3M': return 3;
-    case 'YTD':
+    case 'YTD': {
       const month = parseInt(currentPeriod.split('-')[1]);
       return month; // Current month number = months from start of year
+    }
     default: return 12;
   }
 }

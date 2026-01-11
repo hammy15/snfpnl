@@ -37,6 +37,7 @@ const TYPE_CONFIG = {
 export function AnnotationSystem({ facilityId, periodId, kpiId }: AnnotationSystemProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_editingId, _setEditingId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<string>('all');
   const [newAnnotation, setNewAnnotation] = useState({

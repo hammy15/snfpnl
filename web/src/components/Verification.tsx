@@ -175,6 +175,7 @@ export function Verification() {
 
   const handleSaveNew = () => {
     if (editForm && editForm.name) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { isNew, ...facilityData } = editForm;
       createMutation.mutate(facilityData);
     }

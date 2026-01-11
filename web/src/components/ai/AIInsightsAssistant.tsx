@@ -76,7 +76,7 @@ export function AIInsightsAssistant({ facilityId, periodId }: AIInsightsAssistan
       if (!response.ok) throw new Error('Failed to get AI response');
       const data = await response.json();
       setConversation(prev => [...prev, { role: 'assistant', content: data.answer }]);
-    } catch (error) {
+    } catch {
       setConversation(prev => [...prev, {
         role: 'assistant',
         content: 'I apologize, but I encountered an error processing your question. Please try again.'

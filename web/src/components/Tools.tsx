@@ -138,6 +138,7 @@ export function Tools({ periodId, settingFilter }: ToolsProps) {
   };
 
   // Combine trend data for multi-facility chart
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const combinedTrendData = useMemo(() => {
     if (trendQueries.some(q => q.isLoading) || trendQueries.length === 0) return [];
 
@@ -158,7 +159,7 @@ export function Tools({ periodId, settingFilter }: ToolsProps) {
       });
       return dataPoint;
     });
-  }, [trendQueries, selectedFacilities, facilities]);
+  }, [trendQueries, selectedFacilities, facilities]); // eslint-disable-line react-hooks/preserve-manual-memoization
 
   // Get KPI data for peer comparison
   const peerData = useMemo(() => {
@@ -182,6 +183,7 @@ export function Tools({ periodId, settingFilter }: ToolsProps) {
   const benchmark = BENCHMARKS[settingFilter === 'all' ? 'SNF' : settingFilter]?.[selectedKPI];
 
   // Build comparison data for selected facilities
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const comparisonData = useMemo(() => {
     if (selectedTool !== 'compare' || selectedFacilities.length === 0) return [];
 
@@ -203,9 +205,10 @@ export function Tools({ periodId, settingFilter }: ToolsProps) {
 
       return row;
     });
-  }, [selectedTool, selectedFacilities, facilityKPIQueries, facilities]);
+  }, [selectedTool, selectedFacilities, facilityKPIQueries, facilities]); // eslint-disable-line react-hooks/preserve-manual-memoization
 
   // Radar chart data for comparison
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const radarData = useMemo(() => {
     if (selectedFacilities.length === 0) return [];
 
@@ -230,7 +233,7 @@ export function Tools({ periodId, settingFilter }: ToolsProps) {
 
       return point;
     });
-  }, [selectedFacilities, allKPIs, facilities]);
+  }, [selectedFacilities, allKPIs, facilities]); // eslint-disable-line react-hooks/preserve-manual-memoization
 
   const toggleFacility = (id: string) => {
     setSelectedFacilities((prev) =>

@@ -53,7 +53,6 @@ const REPORT_TYPE_CONFIG: Record<ReportType, { label: string; description: strin
 
 export function AutomatedReports() {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [_editingReport, _setEditingReport] = useState<ScheduledReport | null>(null);
   const [expandedReport, setExpandedReport] = useState<string | null>(null);
   const queryClient = useQueryClient();
 

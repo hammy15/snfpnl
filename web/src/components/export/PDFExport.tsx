@@ -78,7 +78,6 @@ export function PDFExport({ facilityName, periodId, targetRef }: PDFExportProps)
       const imgData = canvas.toDataURL('image/png');
       let heightLeft = imgHeight;
       let position = 0;
-      let page = 1;
 
       // Add first content page
       pdf.addPage();
@@ -91,7 +90,6 @@ export function PDFExport({ facilityName, periodId, targetRef }: PDFExportProps)
         pdf.addPage();
         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
-        page++;
       }
 
       setProgress(90);
@@ -177,6 +175,7 @@ export function ExportButton({
 }
 
 // Hook for programmatic PDF export
+// eslint-disable-next-line react-refresh/only-export-components
 export function usePDFExport() {
   const [isExporting, setIsExporting] = useState(false);
 

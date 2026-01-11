@@ -55,6 +55,7 @@ export function SavedFiltersProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSavedFilters() {
   const context = useContext(SavedFiltersContext);
   if (!context) {
