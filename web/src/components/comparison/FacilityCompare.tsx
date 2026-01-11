@@ -125,7 +125,7 @@ export function FacilityCompare({ periodId }: { periodId: string }) {
     const sortedPeriods = Array.from(allPeriods).sort();
 
     return sortedPeriods.map(period => {
-      const dataPoint: Record<string, any> = { period: period.replace('_', ' ') };
+      const dataPoint: Record<string, string | number | null> = { period: period.replace('_', ' ') };
       comparisonData.facilities.forEach(f => {
         const periodData = f.historicalData.find(h => h.periodId === period);
         dataPoint[f.name] = periodData?.metrics[selectedKpi] ?? null;
@@ -139,7 +139,7 @@ export function FacilityCompare({ periodId }: { periodId: string }) {
 
     return DEFAULT_COMPARISON_KPIS.map(kpiId => {
       const kpiDef = comparisonData.kpiDefinitions[kpiId];
-      const dataPoint: Record<string, any> = {
+      const dataPoint: Record<string, string | number> = {
         kpi: kpiDef?.name || kpiId,
         fullMark: 100
       };

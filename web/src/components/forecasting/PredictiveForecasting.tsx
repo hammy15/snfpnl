@@ -118,13 +118,18 @@ export function PredictiveForecasting({ facilityId, periodId }: PredictiveForeca
     }))
   ];
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  interface TooltipPayloadItem {
+    dataKey: string;
+    value?: number;
+  }
+
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: TooltipPayloadItem[]; label?: string }) => {
     if (!active || !payload?.length) return null;
 
-    const actual = payload.find((p: any) => p.dataKey === 'actual');
-    const predicted = payload.find((p: any) => p.dataKey === 'predicted');
-    const upper = payload.find((p: any) => p.dataKey === 'upperBound');
-    const lower = payload.find((p: any) => p.dataKey === 'lowerBound');
+    const actual = payload.find((p) => p.dataKey === 'actual');
+    const predicted = payload.find((p) => p.dataKey === 'predicted');
+    const upper = payload.find((p) => p.dataKey === 'upperBound');
+    const lower = payload.find((p) => p.dataKey === 'lowerBound');
 
     return (
       <div style={{

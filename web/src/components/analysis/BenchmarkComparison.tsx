@@ -406,7 +406,7 @@ export function BenchmarkComparison({ facilityId, periodId }: BenchmarkCompariso
                     />
                     <Tooltip
                       contentStyle={{ background: 'rgba(15,15,26,0.95)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px' }}
-                      formatter={(value, _name, props: any) => {
+                      formatter={(value, _name, props) => {
                         if (typeof value !== 'number') return ['', ''];
                         const metric = props.payload;
                         return [

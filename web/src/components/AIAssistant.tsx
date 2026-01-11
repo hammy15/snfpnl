@@ -24,6 +24,13 @@ interface KPIData {
   period_id: string;
 }
 
+interface AllKPIData extends KPIData {
+  facility_id: string;
+  setting: string;
+  name: string;
+  state: string;
+}
+
 interface TrendData {
   period_id: string;
   value: number;
@@ -82,7 +89,7 @@ async function fetchFacilityKPIs(facilityId: string, periodId: string): Promise<
   return res.json();
 }
 
-async function fetchAllKPIs(periodId: string): Promise<any[]> {
+async function fetchAllKPIs(periodId: string): Promise<AllKPIData[]> {
   const res = await fetch(`https://snfpnl.onrender.com/api/kpis/all/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch all KPIs');
   return res.json();
@@ -505,7 +512,7 @@ function formatValue(value: number | null, format: 'percentage' | 'currency' | '
   return value.toFixed(2);
 }
 
-function calculatePeerRank(allKPIs: any[], facilityId: string, kpiId: string, setting: string): { rank: number; total: number; percentile: number } {
+function calculatePeerRank(allKPIs: AllKPIData[], facilityId: string, kpiId: string, setting: string): { rank: number; total: number; percentile: number } {
   const peers = allKPIs
     .filter(k => k.kpi_id === kpiId && k.setting === setting && k.value !== null)
     .sort((a, b) => (b.value || 0) - (a.value || 0));
@@ -533,6 +540,44 @@ function getTrendDirection(trends: TrendData[]): { direction: 'improving' | 'dec
   };
 }
 
+interface AIContext {
+  periodId: string;
+  personality: string;
+  facilityData?: {
+    name: string;
+    state: string;
+    setting: string;
+    margin?: number | null;
+    skilledMix?: number | null;
+    revenuePPD?: number | null;
+    expensePPD?: number | null;
+    contractLabor?: number | null;
+    trend?: string;
+    metrics?: Record<string, number | string | null>;
+  };
+  facility?: {
+    name: string;
+    state: string;
+    setting: string;
+    metrics: Record<string, number | string | null>;
+  };
+  trendSummary?: string;
+  peerRankings?: Record<string, { rank: number; total: number; percentile: number }>;
+  portfolioSummary?: {
+    totalFacilities: number;
+    snfCount: number;
+    states: string[];
+    avgMargin: string;
+    avgSkilledMix: string;
+    avgContractLabor: string;
+    topPerformers: { name: string; margin: number | null; state: string }[];
+    bottomPerformers: { name: string; margin: number | null; state: string }[];
+    facilitiesNeedingAttention: number;
+    topPerformer?: string;
+    bottomPerformer?: string;
+  };
+}
+
 // AI response generator using Claude API
 async function generateAIResponse(
   userInput: string,
@@ -540,12 +585,12 @@ async function generateAIResponse(
   periodId: string,
   selectedFacility: Facility | null,
   facilityKPIs: KPIData[],
-  allKPIs: any[],
+  allKPIs: AllKPIData[],
   marginTrends: TrendData[],
   facilities: Facility[]
 ): Promise<string> {
   // Build context for Claude
-  const context: any = {
+  const context: AIContext = {
     periodId,
     personality: settings.personality,
   };
@@ -566,7 +611,7 @@ async function generateAIResponse(
       revenuePPD,
       expensePPD,
       contractLabor,
-      trend: getTrendDirection(marginTrends)
+      trend: getTrendDirection(marginTrends).direction
     };
   }
 
@@ -609,12 +654,12 @@ async function generateAIResponse(
     totalFacilities: facilities.length,
     snfCount: snfFacilities.length,
     states: [...new Set(facilities.map(f => f.state))],
-    avgMargin: avgMargin?.toFixed(1),
-    avgSkilledMix: avgSkilledMix?.toFixed(1),
-    avgContractLabor: avgContractLabor?.toFixed(1),
+    avgMargin: avgMargin?.toFixed(1) ?? '',
+    avgSkilledMix: avgSkilledMix?.toFixed(1) ?? '',
+    avgContractLabor: avgContractLabor?.toFixed(1) ?? '',
     topPerformers,
     bottomPerformers,
-    facilitiesNeedingAttention: marginData.filter(f => f.value < 5).length
+    facilitiesNeedingAttention: marginData.filter(f => f.value !== null && f.value < 5).length
   };
 
   try {
@@ -631,7 +676,7 @@ async function generateAIResponse(
 
     const data = await response.json();
     return data.reply;
-  } catch (error: any) {
+  } catch (error) {
     console.error('AI API error:', error);
     // Fall back to simulated response
     return generateFallbackResponse(userInput, selectedFacility, facilityKPIs, allKPIs, marginTrends, facilities, settings, periodId);
@@ -643,7 +688,7 @@ function generateFallbackResponse(
   userInput: string,
   selectedFacility: Facility | null,
   facilityKPIs: KPIData[],
-  allKPIs: any[],
+  allKPIs: AllKPIData[],
   marginTrends: TrendData[],
   facilities: Facility[],
   settings?: BotSettings,
@@ -954,7 +999,7 @@ ${topPerfs.length > 0 ? `I'd love to understand what ${topPerfs[0].name} is doin
 **Needs attention:**
 ${bottomPerfs.map(p => `- ${p.name} (${p.state}): ${formatValue(p.value, 'percentage')}`).join('\n')}
 
-${bottomPerfs.length > 0 && bottomPerfs[0].value < 0 ? `${bottomPerfs[0].name} being negative is concerning. Do we know what's driving that? Staffing? Census? Rate issues?` : ''}
+${bottomPerfs.length > 0 && bottomPerfs[0].value !== null && bottomPerfs[0].value < 0 ? `${bottomPerfs[0].name} being negative is concerning. Do we know what's driving that? Staffing? Census? Rate issues?` : ''}
 
 **Questions on my mind:**
 - What would it take to get our bottom 3 to portfolio average?
@@ -1007,11 +1052,11 @@ Want me to suggest specific improvements to close these gaps?`;
     const expenseData = allKPIs.filter(k => k.kpi_id === 'snf_total_cost_ppd' && k.value !== null);
     const contractData = allKPIs.filter(k => k.kpi_id === 'snf_contract_labor_pct_nursing' && k.value !== null);
 
-    const avgMargin = marginData.length > 0 ? marginData.reduce((sum, k) => sum + k.value, 0) / marginData.length : 0;
-    const avgSkilled = skilledData.length > 0 ? skilledData.reduce((sum, k) => sum + k.value, 0) / skilledData.length : 0;
-    const avgRevenue = revenueData.length > 0 ? revenueData.reduce((sum, k) => sum + k.value, 0) / revenueData.length : 0;
-    const avgExpense = expenseData.length > 0 ? expenseData.reduce((sum, k) => sum + k.value, 0) / expenseData.length : 0;
-    const avgContract = contractData.length > 0 ? contractData.reduce((sum, k) => sum + k.value, 0) / contractData.length : 0;
+    const avgMargin = marginData.length > 0 ? marginData.reduce((sum, k) => sum + k.value!, 0) / marginData.length : 0;
+    const avgSkilled = skilledData.length > 0 ? skilledData.reduce((sum, k) => sum + k.value!, 0) / skilledData.length : 0;
+    const avgRevenue = revenueData.length > 0 ? revenueData.reduce((sum, k) => sum + k.value!, 0) / revenueData.length : 0;
+    const avgExpense = expenseData.length > 0 ? expenseData.reduce((sum, k) => sum + k.value!, 0) / expenseData.length : 0;
+    const avgContract = contractData.length > 0 ? contractData.reduce((sum, k) => sum + k.value!, 0) / contractData.length : 0;
 
     return `**Portfolio vs Industry Benchmarks for ${period}:**
 

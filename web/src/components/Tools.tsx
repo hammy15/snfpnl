@@ -85,7 +85,7 @@ async function fetchAllKPIs(periodId: string): Promise<KPIData[]> {
   return res.json();
 }
 
-async function fetchFacilityKPIs(facilityId: string, periodId: string): Promise<any[]> {
+async function fetchFacilityKPIs(facilityId: string, periodId: string): Promise<KPIData[]> {
   const res = await fetch(`https://snfpnl.onrender.com/api/kpis/${facilityId}/${periodId}`);
   if (!res.ok) throw new Error('Failed to fetch facility KPIs');
   return res.json();
@@ -149,7 +149,7 @@ export function Tools({ periodId, settingFilter }: ToolsProps) {
     const sortedPeriods = Array.from(allPeriods).sort();
 
     return sortedPeriods.map(period => {
-      const dataPoint: Record<string, any> = { period_id: period };
+      const dataPoint: Record<string, string | number | null> = { period_id: period };
       selectedFacilities.forEach((facilityId, idx) => {
         const facilityData = trendQueries[idx]?.data || [];
         const match = facilityData.find(d => d.period_id === period);
@@ -189,14 +189,14 @@ export function Tools({ periodId, settingFilter }: ToolsProps) {
 
     return kpiList.map(kpiId => {
       const kpiOption = KPI_OPTIONS.find(k => k.id === kpiId);
-      const row: Record<string, any> = {
+      const row: Record<string, string | number | null> = {
         kpi: kpiOption?.label || kpiId,
         kpi_id: kpiId,
       };
 
       selectedFacilities.forEach((facilityId, idx) => {
         const facilityKPIs = facilityKPIQueries[idx]?.data || [];
-        const kpiData = facilityKPIs.find((k: any) => k.kpi_id === kpiId);
+        const kpiData = facilityKPIs.find((k) => k.kpi_id === kpiId);
         const facility = facilities.find(f => f.facility_id === facilityId);
         row[facility?.name || `Facility ${idx + 1}`] = kpiData?.value ?? null;
       });
@@ -216,7 +216,7 @@ export function Tools({ periodId, settingFilter }: ToolsProps) {
     ];
 
     return metrics.map(metric => {
-      const point: Record<string, any> = { metric: metric.label };
+      const point: Record<string, string | number> = { metric: metric.label };
 
       selectedFacilities.forEach((facilityId) => {
         const kpiData = allKPIs.find(
@@ -418,10 +418,10 @@ export function Tools({ periodId, settingFilter }: ToolsProps) {
                     {selectedFacilities.map((facilityId, idx) => {
                       const facility = facilities.find(f => f.facility_id === facilityId);
                       const facilityKPIs = facilityKPIQueries[idx]?.data || [];
-                      const margin = facilityKPIs.find((k: any) => k.kpi_id === 'snf_operating_margin_pct')?.value;
-                      const skilled = facilityKPIs.find((k: any) => k.kpi_id === 'snf_skilled_mix_pct')?.value;
-                      const revenue = facilityKPIs.find((k: any) => k.kpi_id === 'snf_total_revenue_ppd')?.value;
-                      const contract = facilityKPIs.find((k: any) => k.kpi_id === 'snf_contract_labor_pct_nursing')?.value;
+                      const margin = facilityKPIs.find((k) => k.kpi_id === 'snf_operating_margin_pct')?.value;
+                      const skilled = facilityKPIs.find((k) => k.kpi_id === 'snf_skilled_mix_pct')?.value;
+                      const revenue = facilityKPIs.find((k) => k.kpi_id === 'snf_total_revenue_ppd')?.value;
+                      const contract = facilityKPIs.find((k) => k.kpi_id === 'snf_contract_labor_pct_nursing')?.value;
 
                       return (
                         <div key={facilityId} className="comparison-card" style={{ borderTopColor: CHART_COLORS[idx] }}>
@@ -509,9 +509,10 @@ export function Tools({ periodId, settingFilter }: ToolsProps) {
                               {selectedFacilities.map((facilityId) => {
                                 const facility = facilities.find(f => f.facility_id === facilityId);
                                 const value = row[facility?.name || ''];
+                                const numValue = typeof value === 'number' ? value : null;
                                 return (
                                   <td key={facilityId} className="font-semibold">
-                                    {formatValue(value, kpiOption?.format || 'number')}
+                                    {formatValue(numValue, kpiOption?.format || 'number')}
                                   </td>
                                 );
                               })}

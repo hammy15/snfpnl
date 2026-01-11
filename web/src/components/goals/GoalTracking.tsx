@@ -15,6 +15,10 @@ interface KpiGoal {
   updated_at: string;
 }
 
+interface ServerKpiGoal extends Omit<KpiGoal, 'deadline'> {
+  target_date: string | null;
+}
+
 interface GoalTrackingProps {
   facilityId: string;
   currentKpiValues?: Record<string, number>;
@@ -34,9 +38,9 @@ const KPI_OPTIONS = [
 async function fetchGoals(facilityId: string): Promise<KpiGoal[]> {
   const res = await fetch(`https://snfpnl.onrender.com/api/kpi-goals/${facilityId}`);
   if (!res.ok) throw new Error('Failed to fetch goals');
-  const data = await res.json();
+  const data: ServerKpiGoal[] = await res.json();
   // Map server fields to frontend fields
-  return data.map((g: any) => ({
+  return data.map((g) => ({
     ...g,
     deadline: g.target_date,
   }));

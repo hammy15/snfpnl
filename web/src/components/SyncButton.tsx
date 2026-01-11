@@ -21,11 +21,18 @@ interface SyncResult {
   facilityBreakdown: Record<string, number>;
 }
 
+interface SyncSummary {
+  facilities?: number;
+  periods?: number;
+  kpiResults?: number;
+  duration?: string;
+}
+
 interface SyncStatus {
   lastSync: {
     timestamp: string;
     requestedBy: string;
-    summary: any;
+    summary: SyncSummary | null;
   } | null;
   currentStatus: {
     facilities: number;

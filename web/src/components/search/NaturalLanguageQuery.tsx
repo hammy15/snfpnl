@@ -1,11 +1,21 @@
 import { useState, useRef } from 'react';
 import { Search, Sparkles, X, ArrowRight, Building2, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 
+interface QueryResultItem {
+  facilityId: string;
+  name: string;
+  setting: string;
+  state?: string;
+  value: number;
+  status: 'success' | 'warning' | 'danger';
+  trend?: 'up' | 'down' | 'stable';
+}
+
 interface QueryResult {
   type: 'facilities' | 'metric' | 'comparison' | 'alert';
   title: string;
   description: string;
-  data: any[];
+  data: QueryResultItem[];
   query: string;
 }
 
@@ -263,7 +273,7 @@ export function NaturalLanguageQuery({ onFacilityClick }: NaturalLanguageQueryPr
                   </tr>
                 </thead>
                 <tbody>
-                  {results.data.map((item: any, idx: number) => (
+                  {results.data.map((item, idx) => (
                     <tr
                       key={idx}
                       onClick={() => onFacilityClick?.(item.facilityId)}

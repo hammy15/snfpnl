@@ -305,7 +305,7 @@ export function SparklineDashboard({ onFacilityClick }: SparklineDashboardProps)
 
               <select
                 value={filterTrend}
-                onChange={(e) => setFilterTrend(e.target.value as any)}
+                onChange={(e) => setFilterTrend(e.target.value as 'all' | 'up' | 'down' | 'stable')}
                 style={{
                   padding: '6px 12px',
                   background: 'rgba(255,255,255,0.1)',
@@ -323,7 +323,7 @@ export function SparklineDashboard({ onFacilityClick }: SparklineDashboardProps)
 
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => setSortBy(e.target.value as 'score' | MetricKey)}
                 style={{
                   padding: '6px 12px',
                   background: 'rgba(255,255,255,0.1)',

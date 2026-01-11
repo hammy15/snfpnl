@@ -124,12 +124,12 @@ export function DataUpload() {
           details: data.details
         });
       }
-    } catch (err: any) {
+    } catch (err) {
       setUploadResult({
         success: false,
         message: 'Upload failed',
         error: 'Network error',
-        details: err.message
+        details: err instanceof Error ? err.message : 'Unknown error'
       });
     } finally {
       setIsUploading(false);

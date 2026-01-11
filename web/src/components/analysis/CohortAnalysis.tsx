@@ -223,7 +223,7 @@ export function CohortAnalysis({ onFacilityClick }: CohortAnalysisProps) {
             {viewMode !== 'pie' && (
               <select
                 value={selectedMetric}
-                onChange={(e) => setSelectedMetric(e.target.value as any)}
+                onChange={(e) => setSelectedMetric(e.target.value as 'avgMargin' | 'avgOccupancy' | 'avgSkilledMix' | 'avgRevenue')}
                 style={{
                   padding: '6px 12px',
                   background: 'rgba(255,255,255,0.1)',

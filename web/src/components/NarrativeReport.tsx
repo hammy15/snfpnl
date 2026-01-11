@@ -3,11 +3,18 @@ import { FileText, Download, Loader2, RefreshCw, Copy, Check, Building2, Trendin
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import './NarrativeReport.css';
 
+interface NarrativeReportData {
+  facilities?: Array<{ id: string; name: string; metrics?: Record<string, number | null> }>;
+  kpis?: Array<{ kpi_id: string; value: number | null }>;
+  alerts?: Array<{ type: string; message: string }>;
+  [key: string]: unknown;
+}
+
 interface NarrativeReportProps {
   context: 'dashboard' | 'facility' | 'comparison' | 'alerts' | 'ppd' | 'executive' | 'directory' | 'heatmap';
   periodId: string;
   facilityId?: string;
-  data?: any;
+  data?: NarrativeReportData;
   title?: string;
 }
 
@@ -306,9 +313,22 @@ interface PacketOptions {
   facilities: { id: string; name: string; state: string }[];
 }
 
+// The financial packet has a highly dynamic structure from the API
+// Using eslint-disable for this specific type as strict typing would be impractical
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FinancialPacket = Record<string, any>;
+
+// Helper type for map callbacks to avoid implicit any errors
+interface ChartEntry { name: string; color: string; value?: number; pct?: number; count?: number }
+interface PeerEntry { facility_id: string; name: string; rank: number; margin: number; isCurrentFacility?: boolean }
+interface FacilityEntry { name: string; state: string; margin: number; highlight?: string; issue?: string; recommendation?: string; narrative?: string; setting?: string; status?: string; marginChange?: number; beds?: number }
+interface PredictionEntry { metric: string; currentValue?: number; predictedValue?: number; predictedChange?: number; confidence: string; reasoning?: string }
+interface OpportunityEntry { title: string; description: string; type: string; priority: string; potentialImpact: string; relatedMetrics?: string[] }
+interface PitfallEntry { title: string; description: string; type: string; severity: string; mitigation: string; relatedMetrics?: string[] }
+
 export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPacketProps) {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [packet, setPacket] = useState<any>(null);
+  const [packet, setPacket] = useState<FinancialPacket | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Default to 'facility' scope if facilityId is provided
   const [scope, setScope] = useState<PacketScope>(facilityId ? 'facility' : 'portfolio');
@@ -613,7 +633,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
                             outerRadius={60}
                             label={({ name, payload }) => `${name}: ${payload?.pct?.toFixed(0) ?? 0}%`}
                           >
-                            {packet.charts.costBreakdown.data.map((entry: any, index: number) => (
+                            {packet.charts.costBreakdown.data.map((entry: ChartEntry, index: number) => (
                               <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
                           </Pie>
@@ -638,7 +658,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
                             outerRadius={60}
                             label={({ name, value }) => `${name}: ${Number(value).toFixed(0)}%`}
                           >
-                            {packet.charts.payerMix.data.map((entry: any, index: number) => (
+                            {packet.charts.payerMix.data.map((entry: ChartEntry, index: number) => (
                               <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
                           </Pie>
@@ -703,7 +723,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
                           </tr>
                         </thead>
                         <tbody>
-                          {packet.peerAnalysis.peers.map((peer: any) => (
+                          {packet.peerAnalysis.peers.map((peer: PeerEntry) => (
                             <tr key={peer.facility_id} className={peer.isCurrentFacility ? 'current-facility' : ''}>
                               <td>#{peer.rank}</td>
                               <td>{peer.name} {peer.isCurrentFacility && <span className="you-badge">← This Facility</span>}</td>
@@ -840,7 +860,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
                     <div className="performers-list">
                       <h4>Top Performers</h4>
                       <div className="performers-grid">
-                        {packet.goingWell.topPerformers.slice(0, 8).map((f: any, i: number) => (
+                        {packet.goingWell.topPerformers.slice(0, 8).map((f: FacilityEntry, i: number) => (
                           <div key={i} className="performer-card success">
                             <span className="performer-name">{f.name}</span>
                             <span className="performer-state">{f.state}</span>
@@ -901,7 +921,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
                             </tr>
                           </thead>
                           <tbody>
-                            {packet.needsWork.underperformers.map((f: any, i: number) => (
+                            {packet.needsWork.underperformers.map((f: FacilityEntry, i: number) => (
                               <tr key={i}>
                                 <td className="facility-name">{f.name}</td>
                                 <td>{f.state}</td>
@@ -946,7 +966,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
                               contentStyle={{ background: 'rgba(15,15,26,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
                             />
                             <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                              {packet.charts.marginDistribution.map((entry: any, index: number) => (
+                              {packet.charts.marginDistribution.map((entry: ChartEntry, index: number) => (
                                 <Cell key={index} fill={entry.color} />
                               ))}
                             </Bar>
@@ -1010,7 +1030,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
                               outerRadius={70}
                               paddingAngle={3}
                             >
-                              {packet.charts.payerMix.map((entry: any, index: number) => (
+                              {packet.charts.payerMix.map((entry: ChartEntry, index: number) => (
                                 <Cell key={index} fill={entry.color} />
                               ))}
                             </Pie>
@@ -1021,7 +1041,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
                           </PieChart>
                         </ResponsiveContainer>
                         <div className="pie-legend">
-                          {packet.charts.payerMix.map((entry: any, i: number) => (
+                          {packet.charts.payerMix.map((entry: ChartEntry, i: number) => (
                             <div key={i} className="legend-item">
                               <span className="legend-dot" style={{ background: entry.color }} />
                               <span>{entry.name}: {entry.value?.toFixed(1)}%</span>
@@ -1050,7 +1070,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
               </div>
               {expandedSections.has('facilities') && (
                 <div className="facility-summaries">
-                  {packet.facilitySummaries.map((f: any, i: number) => (
+                  {packet.facilitySummaries.map((f: FacilityEntry, i: number) => (
                     <div key={i} className={`facility-summary-card status-${f.status}`}>
                       <div className="facility-summary-header">
                         <div className="facility-info">
@@ -1116,7 +1136,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
                     </div>
                   )}
                   <div className="predictions-grid">
-                    {packet.predictions.items.map((pred: any, i: number) => (
+                    {packet.predictions.items.map((pred: PredictionEntry, i: number) => (
                       <div key={i} className={`prediction-card confidence-${pred.confidence}`}>
                         <div className="prediction-header">
                           <span className="prediction-metric">{pred.metric}</span>
@@ -1130,10 +1150,10 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
                           <div className="arrow">→</div>
                           <div className="predicted-value">
                             <span className="label">Predicted</span>
-                            <span className={`value ${pred.predictedChange >= 0 ? 'positive' : 'negative'}`}>
+                            <span className={`value ${(pred.predictedChange ?? 0) >= 0 ? 'positive' : 'negative'}`}>
                               {pred.predictedValue?.toFixed(1)}
                               <span className="change">
-                                ({pred.predictedChange >= 0 ? '+' : ''}{pred.predictedChange?.toFixed(1)})
+                                ({(pred.predictedChange ?? 0) >= 0 ? '+' : ''}{pred.predictedChange?.toFixed(1)})
                               </span>
                             </span>
                           </div>
@@ -1164,7 +1184,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
                 <div className="section-content">
                   <p className="section-summary">{packet.opportunities.totalPotential}</p>
                   <div className="opportunities-grid">
-                    {packet.opportunities.items.map((opp: any, i: number) => (
+                    {packet.opportunities.items.map((opp: OpportunityEntry, i: number) => (
                       <div key={i} className={`opportunity-card priority-${opp.priority}`}>
                         <div className="opportunity-header">
                           <span className={`type-badge ${opp.type}`}>{opp.type}</span>
@@ -1207,7 +1227,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
               {expandedSections.has('pitfalls') && (
                 <div className="section-content">
                   <div className="pitfalls-grid">
-                    {packet.pitfalls.items.map((pit: any, i: number) => (
+                    {packet.pitfalls.items.map((pit: PitfallEntry, i: number) => (
                       <div key={i} className={`pitfall-card severity-${pit.severity}`}>
                         <div className="pitfall-header">
                           <span className={`type-badge ${pit.type}`}>{pit.type}</span>
@@ -1274,9 +1294,9 @@ function formatMarkdown(text: string): string {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function generateEnhancedPacketHTML(packet: any, _scope: string): string {
+function generateEnhancedPacketHTML(packet: FinancialPacket & { facilitySummaries?: Array<{ name: string; state: string; setting: string; margin: number; narrative: string; status: string }> }, _scope: string): string {
   // Build facility summaries table rows if available
-  void (packet.facilitySummaries ? packet.facilitySummaries.map((f: any) => `
+  void (packet.facilitySummaries ? packet.facilitySummaries.map((f) => `
     <div class="facility-row ${f.status}">
       <td>${f.name}</td>
       <td>${f.state}</td>
@@ -1361,7 +1381,7 @@ function generateEnhancedPacketHTML(packet: any, _scope: string): string {
             <tr><th>Facility</th><th>State</th><th>Type</th><th>Margin</th><th>Summary</th></tr>
           </thead>
           <tbody>
-            ${packet.facilitySummaries.map((f: any) => `
+            ${packet.facilitySummaries.map((f) => `
               <tr>
                 <td><strong>${f.name}</strong></td>
                 <td>${f.state}</td>
