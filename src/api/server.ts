@@ -184,6 +184,23 @@ db.exec(`
   )
 `);
 
+// Add missing columns to kpi_goals if they don't exist
+const kpiGoalsCols = db.prepare("PRAGMA table_info(kpi_goals)").all() as any[];
+const kpiGoalsColNames = kpiGoalsCols.map((c: any) => c.name);
+
+if (!kpiGoalsColNames.includes('notes')) {
+  try { db.exec('ALTER TABLE kpi_goals ADD COLUMN notes TEXT'); } catch (e) {}
+}
+if (!kpiGoalsColNames.includes('status')) {
+  try { db.exec("ALTER TABLE kpi_goals ADD COLUMN status TEXT DEFAULT 'active'"); } catch (e) {}
+}
+if (!kpiGoalsColNames.includes('created_by')) {
+  try { db.exec('ALTER TABLE kpi_goals ADD COLUMN created_by TEXT'); } catch (e) {}
+}
+if (!kpiGoalsColNames.includes('target_date')) {
+  try { db.exec('ALTER TABLE kpi_goals ADD COLUMN target_date TEXT'); } catch (e) {}
+}
+
 // Create unique index for kpi_goals if not exists
 try {
   db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_kpi_goals_facility_kpi ON kpi_goals(facility_id, kpi_id)`);
