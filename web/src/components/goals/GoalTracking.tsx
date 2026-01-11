@@ -1,243 +1,428 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Target, ChevronDown, ChevronRight, Plus, Trash2, Check, X } from 'lucide-react';
 import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Target, Plus, Trash2, Edit2, X, Check, Calendar, TrendingUp, TrendingDown, Award } from 'lucide-react';
+import './GoalTracking.css';
 
-interface Goal {
+interface KpiGoal {
   id: number;
   facility_id: string;
   kpi_id: string;
   target_value: number;
-  target_date: string | null;
-}
-
-interface GoalsResponse {
-  facilityId: string;
-  goals: Goal[];
+  deadline: string | null;
+  status: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 interface GoalTrackingProps {
-  facilityId: number;
+  facilityId: string;
+  currentKpiValues?: Record<string, number>;
 }
 
-const AVAILABLE_KPIS = [
-  { id: 'snf_operating_margin_pct', name: 'Operating Margin', unit: 'percentage' },
-  { id: 'snf_occupancy_pct', name: 'Occupancy', unit: 'percentage' },
-  { id: 'snf_skilled_mix_pct', name: 'Skilled Mix', unit: 'percentage' },
-  { id: 'snf_total_revenue_ppd', name: 'Revenue PPD', unit: 'currency' },
-  { id: 'snf_labor_cost_pct_revenue', name: 'Labor Cost %', unit: 'percentage' },
-  { id: 'snf_contract_labor_pct_nursing', name: 'Contract Labor %', unit: 'percentage' },
-  { id: 'snf_total_nurse_hprd_paid', name: 'Nursing HPPD', unit: 'hours' },
+const KPI_OPTIONS = [
+  { value: 'snf_occupancy_pct', label: 'Occupancy %', unit: '%', higherIsBetter: true },
+  { value: 'snf_skilled_mix_pct', label: 'Skilled Mix %', unit: '%', higherIsBetter: true },
+  { value: 'snf_operating_margin_pct', label: 'Operating Margin %', unit: '%', higherIsBetter: true },
+  { value: 'snf_revenue_ppd', label: 'Revenue PPD', unit: '$', higherIsBetter: true },
+  { value: 'snf_nursing_hppd', label: 'Nursing HPPD', unit: 'hrs', higherIsBetter: true },
+  { value: 'snf_nursing_cost_ppd', label: 'Nursing Cost PPD', unit: '$', higherIsBetter: false },
+  { value: 'snf_contract_labor_pct', label: 'Contract Labor %', unit: '%', higherIsBetter: false },
+  { value: 'snf_total_expense_ppd', label: 'Total Expense PPD', unit: '$', higherIsBetter: false },
 ];
 
-export function GoalTracking({ facilityId }: GoalTrackingProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
-  const [showAddGoal, setShowAddGoal] = useState(false);
-  const [newGoal, setNewGoal] = useState({ kpiId: '', targetValue: '' });
+async function fetchGoals(facilityId: string): Promise<KpiGoal[]> {
+  const res = await fetch(`https://snfpnl.onrender.com/api/kpi-goals/${facilityId}`);
+  if (!res.ok) throw new Error('Failed to fetch goals');
+  const data = await res.json();
+  // Map server fields to frontend fields
+  return data.map((g: any) => ({
+    ...g,
+    deadline: g.target_date,
+  }));
+}
+
+export function GoalTracking({ facilityId, currentKpiValues = {} }: GoalTrackingProps) {
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [newGoal, setNewGoal] = useState({
+    kpiId: 'snf_occupancy_pct',
+    targetValue: '',
+    deadline: '',
+    notes: ''
+  });
+  const [editGoal, setEditGoal] = useState({
+    targetValue: '',
+    deadline: '',
+    notes: '',
+    status: ''
+  });
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error } = useQuery<GoalsResponse>({
-    queryKey: ['goals', facilityId],
-    queryFn: async () => {
-      const response = await fetch(`https://snfpnl.onrender.com/api/goals/${facilityId}`);
-      if (!response.ok) throw new Error('Failed to fetch goals');
-      return response.json();
-    },
+  const { data: goals = [], isLoading } = useQuery({
+    queryKey: ['kpi-goals', facilityId],
+    queryFn: () => fetchGoals(facilityId),
   });
 
-  const addGoalMutation = useMutation({
-    mutationFn: async (goal: { kpiId: string; targetValue: number }) => {
-      const response = await fetch(`https://snfpnl.onrender.com/api/goals/${facilityId}`, {
+  const createMutation = useMutation({
+    mutationFn: async (data: typeof newGoal) => {
+      const userName = JSON.parse(localStorage.getItem('snfpnl_auth') || '{}').name || 'Unknown';
+      const res = await fetch('https://snfpnl.onrender.com/api/kpi-goals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(goal),
+        body: JSON.stringify({
+          facilityId,
+          kpiId: data.kpiId,
+          targetValue: parseFloat(data.targetValue),
+          targetDate: data.deadline || null,
+          notes: data.notes || null,
+          createdBy: userName,
+        }),
       });
-      if (!response.ok) throw new Error('Failed to add goal');
-      return response.json();
+      if (!res.ok) throw new Error('Failed to create goal');
+      return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals', facilityId] });
-      setShowAddGoal(false);
-      setNewGoal({ kpiId: '', targetValue: '' });
+      queryClient.invalidateQueries({ queryKey: ['kpi-goals', facilityId] });
+      setNewGoal({ kpiId: 'snf_occupancy_pct', targetValue: '', deadline: '', notes: '' });
+      setIsAdding(false);
     },
   });
 
-  const deleteGoalMutation = useMutation({
+  const updateMutation = useMutation({
+    mutationFn: async ({ kpiId, data }: { kpiId: string; data: typeof editGoal }) => {
+      // Server uses POST to update (upsert pattern)
+      const userName = JSON.parse(localStorage.getItem('snfpnl_auth') || '{}').name || 'Unknown';
+      const res = await fetch('https://snfpnl.onrender.com/api/kpi-goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          facilityId,
+          kpiId,
+          targetValue: parseFloat(data.targetValue),
+          targetDate: data.deadline || null,
+          notes: data.notes || null,
+          createdBy: userName,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to update goal');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kpi-goals', facilityId] });
+      setEditingId(null);
+    },
+  });
+
+  const deleteMutation = useMutation({
     mutationFn: async (kpiId: string) => {
-      const response = await fetch(`https://snfpnl.onrender.com/api/goals/${facilityId}/${kpiId}`, {
+      const res = await fetch(`https://snfpnl.onrender.com/api/kpi-goals/${facilityId}/${kpiId}`, {
         method: 'DELETE',
       });
-      if (!response.ok) throw new Error('Failed to delete goal');
-      return response.json();
+      if (!res.ok) throw new Error('Failed to delete goal');
+      return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals', facilityId] });
+      queryClient.invalidateQueries({ queryKey: ['kpi-goals', facilityId] });
     },
   });
 
-  const formatValue = (value: number, unit: string) => {
-    if (unit === 'percentage') return `${value.toFixed(1)}%`;
-    if (unit === 'currency') return `$${value.toFixed(2)}`;
-    if (unit === 'hours') return value.toFixed(2);
+  const handleCreate = () => {
+    if (!newGoal.targetValue) return;
+    createMutation.mutate(newGoal);
+  };
+
+  const handleUpdate = (kpiId: string) => {
+    if (!editGoal.targetValue) return;
+    updateMutation.mutate({ kpiId, data: editGoal });
+  };
+
+  const startEdit = (goal: KpiGoal) => {
+    setEditingId(goal.id);
+    setEditGoal({
+      targetValue: goal.target_value.toString(),
+      deadline: goal.deadline || '',
+      notes: goal.notes || '',
+      status: goal.status
+    });
+  };
+
+  const getKpiConfig = (kpiId: string) => {
+    return KPI_OPTIONS.find(k => k.value === kpiId) || { label: kpiId, unit: '', higherIsBetter: true };
+  };
+
+  const calculateProgress = (goal: KpiGoal): { progress: number; status: string } => {
+    const currentValue = currentKpiValues[goal.kpi_id];
+    if (currentValue === undefined) {
+      return { progress: 0, status: goal.status };
+    }
+
+    const config = getKpiConfig(goal.kpi_id);
+    const target = goal.target_value;
+
+    let progress: number;
+    if (config.higherIsBetter) {
+      progress = (currentValue / target) * 100;
+    } else {
+      progress = target > 0 ? ((2 * target - currentValue) / target) * 100 : 0;
+    }
+    progress = Math.max(0, Math.min(100, progress));
+
+    let status = goal.status;
+    if (progress >= 100) {
+      status = 'achieved';
+    } else if (progress >= 80) {
+      status = 'on_track';
+    } else if (progress >= 50) {
+      status = 'at_risk';
+    } else {
+      status = 'behind';
+    }
+
+    return { progress, status };
+  };
+
+  const formatValue = (value: number, kpiId: string) => {
+    const config = getKpiConfig(kpiId);
+    if (config.unit === '%') {
+      return `${value.toFixed(1)}%`;
+    } else if (config.unit === '$') {
+      return `$${value.toFixed(2)}`;
+    }
     return value.toFixed(2);
   };
 
-  const getKpiInfo = (kpiId: string) => {
-    return AVAILABLE_KPIS.find(k => k.id === kpiId) || { id: kpiId, name: kpiId, unit: 'number' };
-  };
-
-  const handleAddGoal = () => {
-    if (newGoal.kpiId && newGoal.targetValue) {
-      addGoalMutation.mutate({
-        kpiId: newGoal.kpiId,
-        targetValue: parseFloat(newGoal.targetValue),
-      });
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'achieved': return <Award size={12} />;
+      case 'on_track': return <TrendingUp size={12} />;
+      case 'at_risk': return <TrendingDown size={12} />;
+      case 'behind': return <TrendingDown size={12} />;
+      default: return <Target size={12} />;
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="card">
-        <div className="loading">
-          <div className="spinner"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="card">
-        <div className="error">Failed to load goals</div>
-      </div>
-    );
-  }
-
-  const existingKpiIds = data.goals.map(g => g.kpi_id);
-  const availableKpisForAdd = AVAILABLE_KPIS.filter(kpi => !existingKpiIds.includes(kpi.id));
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'achieved': return 'Achieved';
+      case 'on_track': return 'On Track';
+      case 'at_risk': return 'At Risk';
+      case 'behind': return 'Behind';
+      default: return 'Pending';
+    }
+  };
 
   return (
-    <section className="kpi-section">
-      <button
-        className="section-title"
-        onClick={() => setIsExpanded(!isExpanded)}
-        style={{ cursor: 'pointer', background: 'none', border: 'none', width: '100%', justifyContent: 'space-between' }}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <div className="goal-tracking-panel">
+      <div className="goal-header">
+        <div className="goal-title">
           <Target size={20} />
-          Goal Tracking
-          <span className="badge badge-info" style={{ marginLeft: '8px' }}>
-            {data.goals.length} goal{data.goals.length !== 1 ? 's' : ''} set
-          </span>
-        </span>
-        {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
-      </button>
+          <h3>Performance Goals</h3>
+        </div>
+        {!isAdding && (
+          <button className="add-goal-btn" onClick={() => setIsAdding(true)}>
+            <Plus size={16} />
+            Set Goal
+          </button>
+        )}
+      </div>
 
-      {isExpanded && (
-        <>
-          {/* Add goal button/form */}
-          {!showAddGoal ? (
-            <button
-              className="btn btn-secondary mb-4"
-              onClick={() => setShowAddGoal(true)}
-              disabled={availableKpisForAdd.length === 0}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-            >
-              <Plus size={16} />
-              Add Goal
+      {isAdding && (
+        <div className="goal-form">
+          <div className="goal-form-row">
+            <div className="goal-form-group">
+              <label>KPI Metric</label>
+              <select
+                value={newGoal.kpiId}
+                onChange={(e) => setNewGoal(prev => ({ ...prev, kpiId: e.target.value }))}
+              >
+                {KPI_OPTIONS.map(kpi => (
+                  <option key={kpi.value} value={kpi.value}>{kpi.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="goal-form-group">
+              <label>Target Value</label>
+              <input
+                type="number"
+                step="0.01"
+                value={newGoal.targetValue}
+                onChange={(e) => setNewGoal(prev => ({ ...prev, targetValue: e.target.value }))}
+                placeholder={`e.g., ${getKpiConfig(newGoal.kpiId).unit === '%' ? '85' : '150'}`}
+              />
+            </div>
+          </div>
+          <div className="goal-form-row">
+            <div className="goal-form-group">
+              <label>Target Date (Optional)</label>
+              <input
+                type="date"
+                value={newGoal.deadline}
+                onChange={(e) => setNewGoal(prev => ({ ...prev, deadline: e.target.value }))}
+              />
+            </div>
+            <div className="goal-form-group">
+              <label>Notes (Optional)</label>
+              <input
+                type="text"
+                value={newGoal.notes}
+                onChange={(e) => setNewGoal(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Add context..."
+              />
+            </div>
+          </div>
+          <div className="goal-form-actions">
+            <button className="goal-cancel-btn" onClick={() => setIsAdding(false)}>
+              Cancel
             </button>
-          ) : (
-            <div className="card mb-4" style={{ padding: '16px' }}>
-              <div className="flex items-center gap-3">
-                <select
-                  value={newGoal.kpiId}
-                  onChange={(e) => setNewGoal({ ...newGoal, kpiId: e.target.value })}
-                  style={{
-                    flex: 2,
-                    padding: '8px 12px',
-                    background: 'rgba(255,255,255,0.1)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)'
-                  }}
-                >
-                  <option value="">Select metric...</option>
-                  {availableKpisForAdd.map(kpi => (
-                    <option key={kpi.id} value={kpi.id}>{kpi.name}</option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  placeholder="Target value"
-                  value={newGoal.targetValue}
-                  onChange={(e) => setNewGoal({ ...newGoal, targetValue: e.target.value })}
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    background: 'rgba(255,255,255,0.1)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)'
-                  }}
-                />
-                <button
-                  className="btn btn-primary btn-icon"
-                  onClick={handleAddGoal}
-                  disabled={addGoalMutation.isPending}
-                  style={{ width: '36px', height: '36px' }}
-                >
-                  <Check size={16} />
-                </button>
-                <button
-                  className="btn btn-secondary btn-icon"
-                  onClick={() => { setShowAddGoal(false); setNewGoal({ kpiId: '', targetValue: '' }); }}
-                  style={{ width: '36px', height: '36px' }}
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            </div>
-          )}
+            <button
+              className="goal-save-btn"
+              onClick={handleCreate}
+              disabled={!newGoal.targetValue || createMutation.isPending}
+            >
+              {createMutation.isPending ? 'Saving...' : 'Create Goal'}
+            </button>
+          </div>
+        </div>
+      )}
 
-          {/* Goals list */}
-          {data.goals.length === 0 ? (
-            <div className="card" style={{ padding: '32px', textAlign: 'center' }}>
-              <Target size={32} className="text-muted" style={{ margin: '0 auto 12px' }} />
-              <p className="text-muted">No goals set yet. Add a goal to start tracking.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3">
-              {data.goals.map((goal) => {
-                const kpiInfo = getKpiInfo(goal.kpi_id);
-                return (
-                  <div key={goal.id} className="card" style={{ padding: '16px' }}>
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h4 className="font-medium" style={{ color: 'var(--text-primary)' }}>
-                          {kpiInfo.name}
-                        </h4>
+      <div className="goals-list">
+        {isLoading ? (
+          <div className="goals-loading">Loading goals...</div>
+        ) : goals.length === 0 ? (
+          <div className="goals-empty">
+            <Target size={32} strokeWidth={1.5} />
+            <p>No goals set</p>
+            <span>Set performance targets to track progress over time</span>
+          </div>
+        ) : (
+          goals.map(goal => {
+            const kpiConfig = getKpiConfig(goal.kpi_id);
+            const { progress, status } = calculateProgress(goal);
+            const currentValue = currentKpiValues[goal.kpi_id];
+            const isEditing = editingId === goal.id;
+            const statusClass = status.replace('_', '-');
+
+            if (isEditing) {
+              return (
+                <div key={goal.id} className={`goal-item ${statusClass}`}>
+                  <div className="goal-edit-form">
+                    <div className="goal-edit-row">
+                      <div className="goal-edit-group">
+                        <label>Target Value</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={editGoal.targetValue}
+                          onChange={(e) => setEditGoal(prev => ({ ...prev, targetValue: e.target.value }))}
+                        />
                       </div>
+                      <div className="goal-edit-group">
+                        <label>Status</label>
+                        <select
+                          value={editGoal.status}
+                          onChange={(e) => setEditGoal(prev => ({ ...prev, status: e.target.value }))}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="on_track">On Track</option>
+                          <option value="at_risk">At Risk</option>
+                          <option value="behind">Behind</option>
+                          <option value="achieved">Achieved</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="goal-edit-row">
+                      <div className="goal-edit-group">
+                        <label>Target Date</label>
+                        <input
+                          type="date"
+                          value={editGoal.deadline}
+                          onChange={(e) => setEditGoal(prev => ({ ...prev, deadline: e.target.value }))}
+                        />
+                      </div>
+                      <div className="goal-edit-group">
+                        <label>Notes</label>
+                        <input
+                          type="text"
+                          value={editGoal.notes}
+                          onChange={(e) => setEditGoal(prev => ({ ...prev, notes: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <div className="goal-edit-actions">
+                      <button className="cancel" onClick={() => setEditingId(null)}>
+                        <X size={14} /> Cancel
+                      </button>
                       <button
-                        className="btn btn-secondary btn-icon"
-                        onClick={() => deleteGoalMutation.mutate(goal.kpi_id)}
-                        style={{ width: '28px', height: '28px', opacity: 0.7 }}
+                        className="save"
+                        onClick={() => handleUpdate(goal.kpi_id)}
+                        disabled={updateMutation.isPending}
                       >
-                        <Trash2 size={14} />
+                        <Check size={14} /> Save
                       </button>
                     </div>
-
-                    <div className="text-center">
-                      <div className="text-xs text-muted mb-1">Target</div>
-                      <div className="text-2xl font-bold" style={{ color: 'var(--primary)' }}>
-                        {formatValue(goal.target_value, kpiInfo.unit)}
-                      </div>
-                    </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </>
-      )}
-    </section>
+                </div>
+              );
+            }
+
+            return (
+              <div key={goal.id} className={`goal-item ${statusClass}`}>
+                <div className="goal-item-header">
+                  <span className="goal-kpi-name">{kpiConfig.label}</span>
+                  <span className={`goal-status-badge ${statusClass}`}>
+                    {getStatusIcon(status)}
+                    {getStatusLabel(status)}
+                  </span>
+                </div>
+                <div className="goal-progress-section">
+                  <div className="goal-values">
+                    <span className="goal-current">
+                      Current: <strong>{currentValue !== undefined ? formatValue(currentValue, goal.kpi_id) : 'N/A'}</strong>
+                    </span>
+                    <span className="goal-target">
+                      Target: {formatValue(goal.target_value, goal.kpi_id)}
+                    </span>
+                  </div>
+                  <div className="goal-progress-bar">
+                    <div
+                      className="goal-progress-fill"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="goal-meta">
+                  {goal.deadline && (
+                    <span className="goal-deadline">
+                      <Calendar size={12} />
+                      {new Date(goal.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                  )}
+                  {goal.notes && (
+                    <span className="goal-notes">{goal.notes}</span>
+                  )}
+                  <div className="goal-actions">
+                    <button onClick={() => startEdit(goal)} title="Edit">
+                      <Edit2 size={14} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm('Delete this goal?')) {
+                          deleteMutation.mutate(goal.kpi_id);
+                        }
+                      }}
+                      title="Delete"
+                      className="delete"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
   );
 }

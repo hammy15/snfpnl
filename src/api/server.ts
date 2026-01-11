@@ -7434,6 +7434,136 @@ app.get('/api/export/facility/:facilityId', async (req, res) => {
   }
 });
 
+// ============================================================================
+// MASTER SYNC ENDPOINT
+// ============================================================================
+
+app.post('/api/sync-all', async (req, res) => {
+  try {
+    const startTime = Date.now();
+    const results: Record<string, any> = {};
+    const { requestedBy = 'System' } = req.body;
+
+    // 1. Get current data counts
+    const facilitiesCount = (db.prepare('SELECT COUNT(*) as count FROM facilities').get() as any).count;
+    const periodsCount = (db.prepare('SELECT COUNT(DISTINCT period_id) as count FROM kpi_results').get() as any).count;
+    const kpiResultsCount = (db.prepare('SELECT COUNT(*) as count FROM kpi_results').get() as any).count;
+    const latestPeriod = (db.prepare('SELECT MAX(period_id) as period FROM kpi_results').get() as any).period;
+
+    results.currentData = {
+      facilities: facilitiesCount,
+      periods: periodsCount,
+      kpiResults: kpiResultsCount,
+      latestPeriod
+    };
+
+    // 2. Get data quality metrics
+    const kpisWithData = db.prepare(`
+      SELECT COUNT(DISTINCT kpi_id) as count FROM kpi_results WHERE value IS NOT NULL
+    `).get() as any;
+
+    const facilitiesWithData = db.prepare(`
+      SELECT COUNT(DISTINCT facility_id) as count FROM kpi_results WHERE value IS NOT NULL
+    `).get() as any;
+
+    results.dataQuality = {
+      kpisWithData: kpisWithData.count,
+      facilitiesWithData: facilitiesWithData.count,
+      completeness: Math.round((kpiResultsCount / (facilitiesCount * periodsCount * 27)) * 100)
+    };
+
+    // 3. Get facility breakdown by setting
+    const settingBreakdown = db.prepare(`
+      SELECT setting, COUNT(*) as count FROM facilities GROUP BY setting
+    `).all() as any[];
+
+    results.facilityBreakdown = Object.fromEntries(
+      settingBreakdown.map(s => [s.setting, s.count])
+    );
+
+    // 4. Archive current snapshot
+    const snapshotData = {
+      timestamp: new Date().toISOString(),
+      facilities: facilitiesCount,
+      periods: periodsCount,
+      kpiResults: kpiResultsCount,
+      latestPeriod,
+      settingBreakdown: results.facilityBreakdown
+    };
+
+    db.prepare(`
+      INSERT INTO data_archive (archive_type, facility_id, period_id, data_snapshot, requested_by)
+      VALUES (?, ?, ?, ?, ?)
+    `).run('sync_snapshot', null, latestPeriod, JSON.stringify(snapshotData), requestedBy);
+
+    // 5. Log the sync action
+    db.prepare(`
+      INSERT INTO audit_log (action, entity_type, entity_id, user_name, details)
+      VALUES (?, ?, ?, ?, ?)
+    `).run('sync_all', 'system', null, requestedBy, JSON.stringify(results));
+
+    // 6. Get recent sync history
+    const recentSyncs = db.prepare(`
+      SELECT created_at, requested_by, data_snapshot
+      FROM data_archive
+      WHERE archive_type = 'sync_snapshot'
+      ORDER BY created_at DESC
+      LIMIT 5
+    `).all() as any[];
+
+    results.recentSyncs = recentSyncs.map(s => ({
+      timestamp: s.created_at,
+      requestedBy: s.requested_by,
+      summary: JSON.parse(s.data_snapshot)
+    }));
+
+    const duration = Date.now() - startTime;
+
+    res.json({
+      success: true,
+      syncedAt: new Date().toISOString(),
+      duration: `${duration}ms`,
+      ...results
+    });
+
+  } catch (err) {
+    console.error('Sync error:', err);
+    res.status(500).json({ error: 'Failed to sync data', details: String(err) });
+  }
+});
+
+// Get sync status
+app.get('/api/sync-status', (_req, res) => {
+  try {
+    // Get latest sync
+    const latestSync = db.prepare(`
+      SELECT created_at, requested_by, data_snapshot
+      FROM data_archive
+      WHERE archive_type = 'sync_snapshot'
+      ORDER BY created_at DESC
+      LIMIT 1
+    `).get() as any;
+
+    // Get current counts
+    const facilitiesCount = (db.prepare('SELECT COUNT(*) as count FROM facilities').get() as any).count;
+    const latestPeriod = (db.prepare('SELECT MAX(period_id) as period FROM kpi_results').get() as any).period;
+
+    res.json({
+      lastSync: latestSync ? {
+        timestamp: latestSync.created_at,
+        requestedBy: latestSync.requested_by,
+        summary: JSON.parse(latestSync.data_snapshot)
+      } : null,
+      currentStatus: {
+        facilities: facilitiesCount,
+        latestPeriod
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get sync status' });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);

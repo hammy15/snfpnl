@@ -5,6 +5,7 @@ import { FacilitySearch } from './FacilitySearch';
 import { MobileNav } from './MobileNav';
 import { Logo } from './Logo';
 import { ExcelExport } from './export/ExcelExport';
+import { SyncButton } from './SyncButton';
 import './Header.css';
 
 type View = 'dashboard' | 'facilities' | 'facility-detail' | 'tools' | 'map' | 'ppd' | 'verification' | 'executive' | 'comparison' | 'alerts' | 'directory' | 'upload' | 'manage';
@@ -148,6 +149,7 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
               </option>
             ))}
           </select>
+          <SyncButton />
           <ExcelExport periodId={selectedPeriod} />
           <button
             className="help-btn"

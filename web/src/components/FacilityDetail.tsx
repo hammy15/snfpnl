@@ -10,6 +10,7 @@ import { ExecutiveSummary } from './executive/ExecutiveSummary';
 import { ThresholdAlerts } from './alerts/ThresholdAlerts';
 import { PeerComparison } from './comparison/PeerComparison';
 import { GoalTracking } from './goals/GoalTracking';
+import { AnnotationsPanel } from './annotations/AnnotationsPanel';
 import { PDFExport } from './export/PDFExport';
 import { InfoTooltip } from './ui/InfoTooltip';
 import { NarrativeReport, FinancialPacketGenerator } from './NarrativeReport';
@@ -596,7 +597,20 @@ export function FacilityDetail({ facilityId, periodId, onBack }: FacilityDetailP
       {/* Peer Comparison & Goals */}
       <div className="mt-6 space-y-6">
         <PeerComparison facilityId={parseInt(facilityId)} periodId={periodId} />
-        <GoalTracking facilityId={parseInt(facilityId)} />
+        <GoalTracking
+          facilityId={facilityId}
+          currentKpiValues={Object.fromEntries(
+            kpis.filter(k => k.value !== null).map(k => [k.kpi_id, k.value as number])
+          )}
+        />
+      </div>
+
+      {/* Notes & Annotations */}
+      <div className="mt-6">
+        <AnnotationsPanel
+          facilityId={facilityId}
+          periodId={periodId}
+        />
       </div>
 
       {/* Anomalies */}
