@@ -37,6 +37,32 @@ interface FacilityLeaderboardProps {
 type SortField = 'rank' | 'name' | 'operatingMargin' | 'occupancy' | 'skilledMix' | 'revenuePerDay' | 'score';
 type SortDirection = 'asc' | 'desc';
 
+interface SortHeaderProps {
+  field: SortField;
+  children: React.ReactNode;
+  sortField: SortField;
+  sortDirection: SortDirection;
+  onSort: (field: SortField) => void;
+}
+
+function SortHeader({ field, children, sortField, sortDirection, onSort }: SortHeaderProps) {
+  return (
+    <th
+      onClick={() => onSort(field)}
+      style={{ cursor: 'pointer', userSelect: 'none' }}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {sortField === field ? (
+          sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+        ) : (
+          <ArrowUpDown size={12} className="text-muted" style={{ opacity: 0.5 }} />
+        )}
+      </div>
+    </th>
+  );
+}
+
 export function FacilityLeaderboard({ periodId, onFacilityClick }: FacilityLeaderboardProps) {
   const [sortField, setSortField] = useState<SortField>('rank');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -133,22 +159,6 @@ export function FacilityLeaderboard({ periodId, onFacilityClick }: FacilityLeade
     return sortDirection === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
   });
 
-  const SortHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
-    <th
-      onClick={() => handleSort(field)}
-      style={{ cursor: 'pointer', userSelect: 'none' }}
-    >
-      <div className="flex items-center gap-1">
-        {children}
-        {sortField === field ? (
-          sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
-        ) : (
-          <ArrowUpDown size={12} className="text-muted" style={{ opacity: 0.5 }} />
-        )}
-      </div>
-    </th>
-  );
-
   return (
     <div>
       {/* Header with stats */}
@@ -237,15 +247,15 @@ export function FacilityLeaderboard({ periodId, onFacilityClick }: FacilityLeade
           <table>
             <thead>
               <tr>
-                <SortHeader field="rank">Rank</SortHeader>
+                <SortHeader field="rank" sortField={sortField} sortDirection={sortDirection} onSort={handleSort}>Rank</SortHeader>
                 <th style={{ width: '30px' }}></th>
-                <SortHeader field="name">Facility</SortHeader>
+                <SortHeader field="name" sortField={sortField} sortDirection={sortDirection} onSort={handleSort}>Facility</SortHeader>
                 <th>Setting</th>
-                <SortHeader field="score">Score</SortHeader>
-                <SortHeader field="operatingMargin">Margin</SortHeader>
-                <SortHeader field="occupancy">Occupancy</SortHeader>
-                <SortHeader field="skilledMix">Skilled Mix</SortHeader>
-                <SortHeader field="revenuePerDay">Rev/Day</SortHeader>
+                <SortHeader field="score" sortField={sortField} sortDirection={sortDirection} onSort={handleSort}>Score</SortHeader>
+                <SortHeader field="operatingMargin" sortField={sortField} sortDirection={sortDirection} onSort={handleSort}>Margin</SortHeader>
+                <SortHeader field="occupancy" sortField={sortField} sortDirection={sortDirection} onSort={handleSort}>Occupancy</SortHeader>
+                <SortHeader field="skilledMix" sortField={sortField} sortDirection={sortDirection} onSort={handleSort}>Skilled Mix</SortHeader>
+                <SortHeader field="revenuePerDay" sortField={sortField} sortDirection={sortDirection} onSort={handleSort}>Rev/Day</SortHeader>
                 <th style={{ textAlign: 'center' }}>Trend</th>
               </tr>
             </thead>

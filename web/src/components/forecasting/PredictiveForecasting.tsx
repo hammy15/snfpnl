@@ -45,6 +45,75 @@ const FORECAST_KPIS = [
   { id: 'labor_cost_pct', name: 'Labor Cost %', higherIsBetter: false }
 ];
 
+interface TooltipPayloadItem {
+  dataKey: string;
+  value?: number;
+}
+
+function formatKpiValue(value: number, kpiId: string): string {
+  if (kpiId.includes('pct') || kpiId.includes('margin') || kpiId.includes('mix') || kpiId.includes('occupancy')) {
+    return `${value.toFixed(1)}%`;
+  }
+  if (kpiId.includes('revenue') || kpiId.includes('cost') || kpiId.includes('ppd')) {
+    return `$${value.toFixed(0)}`;
+  }
+  return value.toFixed(1);
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  label?: string;
+  formatValue: (value: number) => string;
+}
+
+function CustomTooltip({ active, payload, label, formatValue }: CustomTooltipProps) {
+  if (!active || !payload?.length) return null;
+
+  const actual = payload.find((p) => p.dataKey === 'actual');
+  const predicted = payload.find((p) => p.dataKey === 'predicted');
+  const upper = payload.find((p) => p.dataKey === 'upperBound');
+  const lower = payload.find((p) => p.dataKey === 'lowerBound');
+
+  return (
+    <div style={{
+      background: 'rgba(15, 15, 26, 0.98)',
+      border: '1px solid rgba(102, 126, 234, 0.5)',
+      borderRadius: '8px',
+      padding: '12px',
+      minWidth: '180px'
+    }}>
+      <div className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+        {label}
+      </div>
+      {actual?.value != null && (
+        <div className="flex justify-between mb-1">
+          <span className="text-muted">Actual:</span>
+          <span style={{ color: 'var(--success)', fontWeight: 600 }}>
+            {formatValue(actual.value)}
+          </span>
+        </div>
+      )}
+      {predicted?.value != null && (
+        <>
+          <div className="flex justify-between mb-1">
+            <span className="text-muted">Predicted:</span>
+            <span style={{ color: 'var(--primary)', fontWeight: 600 }}>
+              {formatValue(predicted.value)}
+            </span>
+          </div>
+          {upper?.value != null && lower?.value != null && (
+            <div className="flex justify-between text-xs" style={{ color: 'var(--text-muted)' }}>
+              <span>Range:</span>
+              <span>{formatValue(lower.value)} - {formatValue(upper.value)}</span>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 export function PredictiveForecasting({ facilityId, periodId }: PredictiveForecastingProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [selectedKpi, setSelectedKpi] = useState(FORECAST_KPIS[0].id);
@@ -61,15 +130,7 @@ export function PredictiveForecasting({ facilityId, periodId }: PredictiveForeca
     },
   });
 
-  const formatValue = (value: number) => {
-    if (selectedKpi.includes('pct') || selectedKpi.includes('margin') || selectedKpi.includes('mix') || selectedKpi.includes('occupancy')) {
-      return `${value.toFixed(1)}%`;
-    }
-    if (selectedKpi.includes('revenue') || selectedKpi.includes('cost') || selectedKpi.includes('ppd')) {
-      return `$${value.toFixed(0)}`;
-    }
-    return value.toFixed(1);
-  };
+  const formatValue = (value: number) => formatKpiValue(value, selectedKpi);
 
   const getTrendIcon = (trend: string) => {
     if (trend === 'improving') return <TrendingUp size={16} className="text-success" />;
@@ -117,58 +178,6 @@ export function PredictiveForecasting({ facilityId, periodId }: PredictiveForeca
       lowerBound: d.lowerBound
     }))
   ];
-
-  interface TooltipPayloadItem {
-    dataKey: string;
-    value?: number;
-  }
-
-  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: TooltipPayloadItem[]; label?: string }) => {
-    if (!active || !payload?.length) return null;
-
-    const actual = payload.find((p) => p.dataKey === 'actual');
-    const predicted = payload.find((p) => p.dataKey === 'predicted');
-    const upper = payload.find((p) => p.dataKey === 'upperBound');
-    const lower = payload.find((p) => p.dataKey === 'lowerBound');
-
-    return (
-      <div style={{
-        background: 'rgba(15, 15, 26, 0.98)',
-        border: '1px solid rgba(102, 126, 234, 0.5)',
-        borderRadius: '8px',
-        padding: '12px',
-        minWidth: '180px'
-      }}>
-        <div className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-          {label}
-        </div>
-        {actual?.value != null && (
-          <div className="flex justify-between mb-1">
-            <span className="text-muted">Actual:</span>
-            <span style={{ color: 'var(--success)', fontWeight: 600 }}>
-              {formatValue(actual.value)}
-            </span>
-          </div>
-        )}
-        {predicted?.value != null && (
-          <>
-            <div className="flex justify-between mb-1">
-              <span className="text-muted">Predicted:</span>
-              <span style={{ color: 'var(--primary)', fontWeight: 600 }}>
-                {formatValue(predicted.value)}
-              </span>
-            </div>
-            {upper?.value != null && lower?.value != null && (
-              <div className="flex justify-between text-xs" style={{ color: 'var(--text-muted)' }}>
-                <span>Range:</span>
-                <span>{formatValue(lower.value)} - {formatValue(upper.value)}</span>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    );
-  };
 
   return (
     <section className="kpi-section">
@@ -313,7 +322,7 @@ export function PredictiveForecasting({ facilityId, periodId }: PredictiveForeca
                     tickFormatter={(v) => formatValue(v)}
                     domain={['auto', 'auto']}
                   />
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip formatValue={formatValue} />} />
 
                   {/* Confidence interval band */}
                   <Area

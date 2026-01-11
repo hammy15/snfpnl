@@ -28,6 +28,62 @@ interface WaterfallChartProps {
   periodId: string;
 }
 
+function formatCurrency(value: number): string {
+  if (Math.abs(value) >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+  if (Math.abs(value) >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+  return `$${value.toFixed(0)}`;
+}
+
+interface WaterfallTooltipPayload {
+  payload: WaterfallItem & { start: number; end: number; fill: string };
+}
+
+interface WaterfallTooltipProps {
+  active?: boolean;
+  payload?: WaterfallTooltipPayload[];
+  showPercentages: boolean;
+  totalRevenue: number;
+}
+
+function WaterfallTooltip({ active, payload, showPercentages, totalRevenue }: WaterfallTooltipProps) {
+  if (!active || !payload?.[0]) return null;
+  const item = payload[0].payload;
+
+  return (
+    <div style={{
+      background: 'rgba(15, 15, 26, 0.98)',
+      border: '1px solid rgba(102, 126, 234, 0.5)',
+      borderRadius: '8px',
+      padding: '12px',
+      minWidth: '180px'
+    }}>
+      <div className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+        {item.name}
+      </div>
+      <div className="flex justify-between mb-1">
+        <span className="text-muted">Amount:</span>
+        <span style={{ color: item.value >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 600 }}>
+          {item.value >= 0 ? '+' : ''}{formatCurrency(item.value)}
+        </span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-muted">Running Total:</span>
+        <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+          {formatCurrency(item.end)}
+        </span>
+      </div>
+      {showPercentages && totalRevenue > 0 && (
+        <div className="flex justify-between mt-1 pt-1" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          <span className="text-muted">% of Revenue:</span>
+          <span style={{ color: 'var(--text-primary)' }}>
+            {((item.value / totalRevenue) * 100).toFixed(1)}%
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function WaterfallChart({ facilityId, periodId }: WaterfallChartProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [showPercentages, setShowPercentages] = useState(false);
@@ -41,12 +97,6 @@ export function WaterfallChart({ facilityId, periodId }: WaterfallChartProps) {
       return response.json();
     },
   });
-
-  const formatCurrency = (value: number) => {
-    if (Math.abs(value) >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-    if (Math.abs(value) >= 1000) return `$${(value / 1000).toFixed(0)}K`;
-    return `$${value.toFixed(0)}`;
-  };
 
   const getBarColor = (item: WaterfallItem) => {
     if (item.type === 'total') return 'var(--primary)';
@@ -85,45 +135,6 @@ export function WaterfallChart({ facilityId, periodId }: WaterfallChartProps) {
       fill: getBarColor(item)
     };
   });
-
-  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: WaterfallItem & { start: number; end: number; fill: string } }> }) => {
-    if (!active || !payload?.[0]) return null;
-    const item = payload[0].payload;
-
-    return (
-      <div style={{
-        background: 'rgba(15, 15, 26, 0.98)',
-        border: '1px solid rgba(102, 126, 234, 0.5)',
-        borderRadius: '8px',
-        padding: '12px',
-        minWidth: '180px'
-      }}>
-        <div className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-          {item.name}
-        </div>
-        <div className="flex justify-between mb-1">
-          <span className="text-muted">Amount:</span>
-          <span style={{ color: item.value >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 600 }}>
-            {item.value >= 0 ? '+' : ''}{formatCurrency(item.value)}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted">Running Total:</span>
-          <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-            {formatCurrency(item.end)}
-          </span>
-        </div>
-        {showPercentages && data.totalRevenue > 0 && (
-          <div className="flex justify-between mt-1 pt-1" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-            <span className="text-muted">% of Revenue:</span>
-            <span style={{ color: 'var(--text-primary)' }}>
-              {((item.value / data.totalRevenue) * 100).toFixed(1)}%
-            </span>
-          </div>
-        )}
-      </div>
-    );
-  };
 
   return (
     <section className="kpi-section">
@@ -196,7 +207,7 @@ export function WaterfallChart({ facilityId, periodId }: WaterfallChartProps) {
                     stroke="rgba(255,255,255,0.3)"
                     tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 11 }}
                   />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                  <Tooltip content={<WaterfallTooltip showPercentages={showPercentages} totalRevenue={data.totalRevenue} />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                   <ReferenceLine x={0} stroke="rgba(255,255,255,0.2)" />
 
                   {/* Invisible bar for starting position */}
