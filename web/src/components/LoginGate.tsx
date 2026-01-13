@@ -5,7 +5,7 @@ interface LoginGateProps {
   children: React.ReactNode;
 }
 
-const CORRECT_PASSWORD = 'jockibox26';
+const CORRECT_PASSWORD = import.meta.env.VITE_APP_PASSWORD || '';
 const AUTH_KEY = 'snfpnl_auth';
 
 // Check auth status synchronously during initialization
