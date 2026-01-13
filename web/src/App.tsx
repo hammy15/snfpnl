@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { FavoritesProvider } from './contexts/FavoritesContext';
@@ -82,15 +82,15 @@ function AppContent() {
     onShowHelp: () => setIsShortcutsOpen(true),
   });
 
-  const handleFacilitySelect = (facilityId: string) => {
+  const handleFacilitySelect = useCallback((facilityId: string) => {
     setSelectedFacilityId(facilityId);
     setCurrentView('facility-detail');
-  };
+  }, []);
 
-  const handleBackToDashboard = () => {
+  const handleBackToDashboard = useCallback(() => {
     setCurrentView('dashboard');
     setSelectedFacilityId(null);
-  };
+  }, []);
 
   return (
     <div className="app">

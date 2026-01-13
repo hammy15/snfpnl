@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { LayoutDashboard, BarChart3, FileText } from 'lucide-react';
 import { SectionExplainer } from './ui/InfoTooltip';
@@ -112,7 +112,7 @@ async function fetchFinancialSummary(periodId: string): Promise<FinancialSummary
 
 type DashboardTab = 'summary' | 'analytics' | 'exports';
 
-export function Dashboard({ periodId, settingFilter, onSettingFilterChange, onFacilitySelect }: DashboardProps) {
+export const Dashboard = memo(function Dashboard({ periodId, settingFilter, onSettingFilterChange, onFacilitySelect }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('summary');
 
   const { data, isLoading, error } = useQuery({
@@ -444,4 +444,4 @@ export function Dashboard({ periodId, settingFilter, onSettingFilterChange, onFa
       </TabPanel>
     </div>
   );
-}
+});
