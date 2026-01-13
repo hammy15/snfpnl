@@ -27,6 +27,7 @@ import { DataUpload } from './components/DataUpload';
 import { FacilityManagement } from './components/FacilityManagement';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { UserGuide } from './components/UserGuide';
+import { CrashTest } from './components/CrashTest';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -209,6 +210,7 @@ function AppContent() {
         isOpen={isGuideOpen}
         onClose={() => setIsGuideOpen(false)}
       />
+      <CrashTest />
     </div>
   );
 }
