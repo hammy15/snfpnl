@@ -38,30 +38,52 @@
   }
 }
 
-.user-guide-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  z-index: 1;
+.user-guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  border-radius: 16px 16px 0 0;
+  /* Allow clicks to pass through to children */
+  pointer-events: none;
 }
 
-.user-guide-close:hover {
-  background: var(--bg-secondary);
+.user-guide-header > * {
+  pointer-events: auto;
+}
+
+.user-guide-close {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-guide-close:hover,
+.user-guide-close:active {
+  background: var(--bg-primary);
   color: var(--text-primary);
+  transform: scale(1.05);
 }
 
 .user-guide-progress {
   display: flex;
   gap: 8px;
-  justify-content: center;
-  padding: 20px 20px 0;
+  justify-content: flex-start;
+  flex-wrap: wrap;
 }
 
 .progress-dot {
@@ -89,7 +111,7 @@
 }
 
 .user-guide-content {
-  padding: 32px 40px;
+  padding: 24px 40px;
   overflow-y: auto;
   flex: 1;
 }
@@ -175,7 +197,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 20px;
+  padding: 12px 24px;
   border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 500;
@@ -184,6 +206,9 @@
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
 }
 
 .guide-nav-btn:hover:not(:disabled) {
@@ -214,14 +239,33 @@
     max-height: 90vh;
   }
 
+  .user-guide-header {
+    padding: 12px 16px;
+  }
+
+  .user-guide-progress {
+    gap: 6px;
+  }
+
+  .progress-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .user-guide-close {
+    padding: 8px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
   .user-guide-content {
-    padding: 24px;
+    padding: 20px;
   }
 
   .user-guide-footer {
-    padding: 16px 24px;
+    padding: 16px 20px;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
   }
 
   .user-guide-nav {

@@ -167,21 +167,46 @@ export function UserGuide({ isOpen, onClose }: UserGuideProps) {
   };
 
   return (
-    <div className="user-guide-overlay" onClick={handleClose}>
-      <div className="user-guide-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="user-guide-close" onClick={handleClose}>
-          <X size={20} />
-        </button>
-
-        <div className="user-guide-progress">
-          {guideSteps.map((_, idx) => (
-            <button
-              key={idx}
-              className={`progress-dot ${idx === currentStep ? 'active' : ''} ${idx < currentStep ? 'completed' : ''}`}
-              onClick={() => setCurrentStep(idx)}
-              title={guideSteps[idx].title}
-            />
-          ))}
+    <div
+      className="user-guide-overlay"
+      onClick={handleClose}
+      onTouchEnd={(e) => {
+        // Only close if touch is on overlay, not on modal
+        if (e.target === e.currentTarget) {
+          handleClose();
+        }
+      }}
+      data-testid="user-guide-overlay"
+    >
+      <div
+        className="user-guide-modal"
+        onClick={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+        data-testid="user-guide-modal"
+      >
+        <div className="user-guide-header">
+          <div className="user-guide-progress">
+            {guideSteps.map((_, idx) => (
+              <button
+                key={idx}
+                className={`progress-dot ${idx === currentStep ? 'active' : ''} ${idx < currentStep ? 'completed' : ''}`}
+                onClick={() => setCurrentStep(idx)}
+                title={guideSteps[idx].title}
+              />
+            ))}
+          </div>
+          <button
+            className="user-guide-close"
+            onClick={handleClose}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              handleClose();
+            }}
+            aria-label="Close guide"
+            data-testid="user-guide-close"
+          >
+            <X size={24} />
+          </button>
         </div>
 
         <div className="user-guide-content">
@@ -208,16 +233,25 @@ export function UserGuide({ isOpen, onClose }: UserGuideProps) {
               className="guide-nav-btn"
               onClick={handlePrev}
               disabled={isFirst}
+              data-testid="user-guide-prev"
             >
               <ChevronLeft size={18} />
               Previous
             </button>
             {isLast ? (
-              <button className="guide-nav-btn primary" onClick={handleClose}>
+              <button
+                className="guide-nav-btn primary"
+                onClick={handleClose}
+                data-testid="user-guide-start"
+              >
                 Get Started
               </button>
             ) : (
-              <button className="guide-nav-btn primary" onClick={handleNext}>
+              <button
+                className="guide-nav-btn primary"
+                onClick={handleNext}
+                data-testid="user-guide-next"
+              >
                 Next
                 <ChevronRight size={18} />
               </button>
