@@ -113,6 +113,23 @@
   padding: 10px 16px;
   color: var(--text-primary);
   font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.period-select:hover {
+  border-color: var(--primary);
+}
+
+.period-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+.period-select:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .help-btn {

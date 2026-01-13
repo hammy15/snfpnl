@@ -140,9 +140,11 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
 
         <div className="header-right">
           <select
+            id="period-selector"
             value={selectedPeriod}
             onChange={(e) => onPeriodChange(e.target.value)}
             className="period-select"
+            aria-label="Select reporting period"
           >
             {periods.map((period) => (
               <option key={period} value={period}>
