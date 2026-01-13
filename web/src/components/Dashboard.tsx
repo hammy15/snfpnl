@@ -1,11 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { TrendingUp, TrendingDown, AlertTriangle, Building, DollarSign, Percent, Target, Lightbulb } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
-import { KPICard } from './KPICard';
-import { SectionExplainer, InfoTooltip } from './ui/InfoTooltip';
-import { NarrativeReport, FinancialPacketGenerator } from './NarrativeReport';
-import { PortfolioT12M } from './performance/PortfolioT12M';
+import { LayoutDashboard, BarChart3, FileText } from 'lucide-react';
+import { SectionExplainer } from './ui/InfoTooltip';
+import { TabPanel } from './ui/TabPanel';
+import { DashboardSummaryTab, DashboardAnalyticsTab, DashboardExportsTab } from './dashboard/tabs';
 import './Dashboard.css';
 
 type SettingFilter = 'all' | 'SNF' | 'ALF' | 'ILF';
@@ -111,7 +109,11 @@ async function fetchFinancialSummary(periodId: string): Promise<FinancialSummary
   return res.json();
 }
 
+type DashboardTab = 'summary' | 'analytics' | 'exports';
+
 export function Dashboard({ periodId, settingFilter, onSettingFilterChange, onFacilitySelect }: DashboardProps) {
+  const [activeTab, setActiveTab] = useState<DashboardTab>('summary');
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['dashboard', periodId],
     queryFn: () => fetchDashboard(periodId),
@@ -362,18 +364,11 @@ export function Dashboard({ periodId, settingFilter, onSettingFilterChange, onFa
   const totalFacilities = filteredFacilities.length;
   const totalAnomalies = data.anomalySummary.reduce((sum, s) => sum + s.count, 0);
 
-  // Pie chart data for setting distribution
-  const settingPieData = [
-    { name: 'SNF', value: settingCounts.SNF || 0, fill: '#667eea' },
-    { name: 'ALF', value: settingCounts.ALF || 0, fill: '#10b981' },
-    { name: 'ILF', value: settingCounts.ILF || 0, fill: '#f59e0b' },
-  ].filter(d => d.value > 0);
-
-  // Extract averages for render
-  const avgMargin = kpiAverages.margin;
-  const avgMetric2 = kpiAverages.metric2;
-  const avgMetric3 = kpiAverages.metric3;
-  const avgMetric4 = kpiAverages.metric4;
+  const dashboardTabs = [
+    { id: 'summary' as const, label: 'Summary', icon: <LayoutDashboard size={18} /> },
+    { id: 'analytics' as const, label: 'Analytics', icon: <BarChart3 size={18} /> },
+    { id: 'exports' as const, label: 'Exports', icon: <FileText size={18} /> },
+  ];
 
   return (
     <div className="dashboard animate-fade-in">
@@ -396,7 +391,7 @@ export function Dashboard({ periodId, settingFilter, onSettingFilterChange, onFa
         <span className="period-badge">{formatPeriod(periodId)}</span>
       </div>
 
-      {/* Setting Type Tabs */}
+      {/* Setting Type Filter Tabs */}
       <div className="setting-tabs mb-6">
         {(['all', 'SNF', 'ALF', 'ILF'] as const).map((setting) => (
           <button
@@ -412,405 +407,40 @@ export function Dashboard({ periodId, settingFilter, onSettingFilterChange, onFa
         ))}
       </div>
 
-      {/* Portfolio Net Income Summary */}
-      {financialSummary && (
-        <div className="cascadia-summary mb-6">
-          <div className="cascadia-card">
-            <div className="cascadia-header">
-              <h3>
-                SNFPNL Portfolio Summary
-                <InfoTooltip
-                  content="Portfolio-wide totals for the selected period. Net Income % is your bottom line profitability after all expenses. Aim for positive and growing month-over-month."
-                  type="info"
-                />
-              </h3>
-              <span className="cascadia-subtitle">
-                {settingFilter === 'all' ? 'All Facilities' : `${settingFilter} Facilities`}
-              </span>
-            </div>
-            <div className="cascadia-metrics">
-              <div className="cascadia-metric">
-                <span className="metric-label">Total Revenue</span>
-                <span className="metric-value">${(filteredNetIncome.revenue / 1000000).toFixed(2)}M</span>
-              </div>
-              <div className="cascadia-metric highlight">
-                <span className="metric-label">Net Income</span>
-                <span className={`metric-value ${filteredNetIncome.total >= 0 ? 'positive' : 'negative'}`}>
-                  ${(filteredNetIncome.total / 1000000).toFixed(2)}M
-                </span>
-              </div>
-              <div className="cascadia-metric">
-                <span className="metric-label">Net Income %</span>
-                <span className={`metric-value ${filteredNetIncome.pct >= 0 ? 'positive' : 'negative'}`}>
-                  {filteredNetIncome.pct.toFixed(1)}%
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-4 mb-6">
-        <KPICard
-          title="Total Facilities"
-          value={totalFacilities}
-          icon={<Building size={20} />}
-          format="number"
-          subtitle={settingFilter !== 'all' ? `${settingFilter} only` : 'All settings'}
-        />
-        <KPICard
-          title={`Avg ${currentBenchmark.metric3.label}`}
-          value={avgMetric3}
-          icon={<DollarSign size={20} />}
-          format={currentBenchmark.metric3.format === 'currency' ? 'currency' : 'percentage'}
-          subtitle={`Target: ${currentBenchmark.metric3.format === 'currency' ? '$' : ''}${currentBenchmark.metric3.target}${currentBenchmark.metric3.format === 'percentage' ? '%' : ''}`}
-        />
-        <KPICard
-          title="Avg EBITDAR Margin"
-          value={avgMargin}
-          icon={<Percent size={20} />}
-          format="percentage"
-          variant={getMarginVariant(avgMargin, currentBenchmark.operatingMargin.target)}
-          subtitle={`Target: ${currentBenchmark.operatingMargin.target}%`}
-        />
-        <KPICard
-          title="Anomalies"
-          value={totalAnomalies}
-          icon={<AlertTriangle size={20} />}
-          format="number"
-          variant={totalAnomalies > 10 ? 'warning' : 'default'}
-          subtitle="Data quality alerts"
-        />
-      </div>
-
-      {/* Charts Row */}
-      <div className="grid grid-cols-3 mb-6">
-        {/* Setting Distribution */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">Portfolio Mix</h3>
-          </div>
-          <div className="chart-container" style={{ height: 200 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={settingPieData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={4}
-                >
-                  {settingPieData.map((entry, index) => (
-                    <Cell key={index} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    background: 'rgba(15, 15, 26, 0.95)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '12px',
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="legend-row">
-            {settingPieData.map((d) => (
-              <div key={d.name} className="legend-item">
-                <span className="legend-dot" style={{ background: d.fill }} />
-                <span>{d.name}: {d.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Facilities by State */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">
-              By State
-              {settingFilter !== 'all' && <span className="header-count">({settingFilter})</span>}
-            </h3>
-          </div>
-          <div className="chart-container" style={{ height: 200 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={filteredStateStats} layout="vertical">
-                <XAxis type="number" stroke="rgba(255,255,255,0.3)" />
-                <YAxis type="category" dataKey="state" width={40} stroke="rgba(255,255,255,0.3)" />
-                <Tooltip
-                  contentStyle={{
-                    background: 'rgba(15, 15, 26, 0.95)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '12px',
-                  }}
-                />
-                <Bar dataKey="count" fill="url(#barGradient)" radius={[0, 4, 4, 0]} />
-                <defs>
-                  <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#667eea" />
-                    <stop offset="100%" stopColor="#764ba2" />
-                  </linearGradient>
-                </defs>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Benchmark Status */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">
-              <Target size={18} />
-              vs Benchmarks
-              {settingFilter !== 'all' && <span className="header-count">({settingFilter})</span>}
-            </h3>
-          </div>
-          <div className="benchmark-list">
-            <BenchmarkItem
-              label="EBITDAR Margin"
-              actual={avgMargin}
-              target={currentBenchmark.operatingMargin.target}
-              format="percentage"
-            />
-            <BenchmarkItem
-              label={currentBenchmark.metric2.label}
-              actual={avgMetric2}
-              target={currentBenchmark.metric2.target}
-              format={currentBenchmark.metric2.format}
-            />
-            <BenchmarkItem
-              label={currentBenchmark.metric3.label}
-              actual={avgMetric3}
-              target={currentBenchmark.metric3.target}
-              format={currentBenchmark.metric3.format}
-            />
-            <BenchmarkItem
-              label={currentBenchmark.metric4.label}
-              actual={avgMetric4}
-              target={currentBenchmark.metric4.target}
-              format={currentBenchmark.metric4.format}
-              inverse={currentBenchmark.metric4.inverse}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Insights Section */}
-      {insights.length > 0 && (
-        <div className="insights-section mb-6">
-          <div className="insights-header">
-            <Lightbulb size={20} />
-            <h3>Insights & Suggestions</h3>
-          </div>
-          <div className="insights-grid">
-            {insights.map((insight, idx) => (
-              <div key={idx} className={`insight-card insight-${insight.type}`}>
-                <div className="insight-content">
-                  <span className="insight-title">{insight.message}</span>
-                  <span className="insight-detail">{insight.detail}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Performance Tables */}
-      <div className="grid grid-cols-2">
-        {/* Top Performers */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">
-              <TrendingUp size={18} className="text-success" />
-              Top Performers
-              <InfoTooltip
-                content="The top third of facilities ranked by EBITDAR margin. These are your strongest performers - study their practices for best practice sharing opportunities."
-                type="tip"
-              />
-              <span className="header-count">({filteredTopPerformers.length} of {totalCount})</span>
-            </h3>
-          </div>
-          <div className="table-container scrollable">
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Facility</th>
-                  <th>Type</th>
-                  <th>EBITDAR %</th>
-                  <th>Net Income</th>
-                  <th>Net %</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTopPerformers.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-muted" style={{ textAlign: 'center', padding: '20px' }}>
-                      No data for selected filter
-                    </td>
-                  </tr>
-                ) : (
-                  filteredTopPerformers.map((facility, index) => (
-                    <tr
-                      key={facility.facility_id}
-                      onClick={() => onFacilitySelect(facility.facility_id)}
-                      className="clickable-row"
-                    >
-                      <td className="text-muted">{index + 1}</td>
-                      <td>{facility.name}</td>
-                      <td>
-                        <span className={`badge badge-${facility.setting.toLowerCase()}`}>
-                          {facility.setting}
-                        </span>
-                      </td>
-                      <td className="text-success font-semibold">
-                        {facility.value.toFixed(1)}%
-                      </td>
-                      <td className={facility.net_income >= 0 ? 'text-success' : 'text-danger'}>
-                        ${(facility.net_income / 1000).toFixed(0)}K
-                      </td>
-                      <td className={facility.net_income_pct >= 0 ? 'text-success' : 'text-danger'}>
-                        {facility.net_income_pct.toFixed(1)}%
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Bottom Performers */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">
-              <TrendingDown size={18} className="text-danger" />
-              Needs Attention
-              <InfoTooltip
-                content="The bottom third of facilities by EBITDAR margin. Prioritize operational reviews for any with negative margins. Click a row to see detailed breakdown and identify improvement opportunities."
-                type="warning"
-              />
-              <span className="header-count">({filteredBottomPerformers.length} of {totalCount})</span>
-            </h3>
-          </div>
-          <div className="table-container scrollable">
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Facility</th>
-                  <th>Type</th>
-                  <th>EBITDAR %</th>
-                  <th>Net Income</th>
-                  <th>Net %</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredBottomPerformers.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-muted" style={{ textAlign: 'center', padding: '20px' }}>
-                      No data for selected filter
-                    </td>
-                  </tr>
-                ) : (
-                  filteredBottomPerformers.map((facility, index) => (
-                    <tr
-                      key={facility.facility_id}
-                      onClick={() => onFacilitySelect(facility.facility_id)}
-                      className="clickable-row"
-                    >
-                      <td className="text-muted">{totalCount - oneThirdCount + index + 1}</td>
-                      <td>{facility.name}</td>
-                      <td>
-                        <span className={`badge badge-${facility.setting.toLowerCase()}`}>
-                          {facility.setting}
-                        </span>
-                      </td>
-                      <td className={facility.value < 0 ? 'text-danger font-semibold' : 'text-warning font-semibold'}>
-                        {facility.value.toFixed(1)}%
-                      </td>
-                      <td className={facility.net_income >= 0 ? 'text-success' : 'text-danger'}>
-                        ${(facility.net_income / 1000).toFixed(0)}K
-                      </td>
-                      <td className={facility.net_income_pct >= 0 ? 'text-success' : 'text-danger'}>
-                        {facility.net_income_pct.toFixed(1)}%
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Portfolio T12M Performance */}
-      <div className="mt-6">
-        <PortfolioT12M
-          periodId={periodId}
-          onFacilitySelect={onFacilitySelect}
-        />
-      </div>
-
-      {/* Narrative Report Section */}
-      <NarrativeReport
-        context="dashboard"
-        periodId={periodId}
-        title="Dashboard Narrative Report"
-      />
-
-      {/* Financial Packet Generator */}
-      <FinancialPacketGenerator periodId={periodId} />
-    </div>
-  );
-}
-
-function BenchmarkItem({ label, actual, target, format, inverse = false }: {
-  label: string;
-  actual: number | null;
-  target: number;
-  format: 'percentage' | 'currency';
-  inverse?: boolean;
-}) {
-  if (actual === null) return null;
-
-  const diff = actual - target;
-  const isGood = inverse ? diff <= 0 : diff >= 0;
-
-  const formatValue = (v: number) => {
-    if (format === 'currency') return `$${v.toFixed(0)}`;
-    return `${v.toFixed(1)}%`;
-  };
-
-  // Calculate bar width - handle negative values and scale properly
-  // Use a scale where target is at 66% position, allowing room for above/below
-  const maxValue = Math.max(Math.abs(actual), target) * 1.5;
-  const barWidth = Math.max(0, (actual / maxValue) * 100);
-  const targetPosition = (target / maxValue) * 100;
-
-  return (
-    <div className="benchmark-item">
-      <div className="benchmark-item-header">
-        <span className="benchmark-label">{label}</span>
-        <span className={`benchmark-diff ${isGood ? 'good' : 'bad'}`}>
-          {diff >= 0 ? '+' : ''}{formatValue(diff)}
-        </span>
-      </div>
-      <div className="benchmark-bar">
-        <div
-          className={`benchmark-fill ${isGood ? 'good' : 'bad'}`}
-          style={{ width: `${barWidth}%` }}
-        />
-        <div className="benchmark-target" style={{ left: `${targetPosition}%` }} />
-      </div>
-      <div className="benchmark-values">
-        <span>Actual: {formatValue(actual)}</span>
-        <span>Target: {formatValue(target)}</span>
-      </div>
+      {/* View Tabs */}
+      <TabPanel
+        tabs={dashboardTabs}
+        activeTab={activeTab}
+        onTabChange={(tab) => setActiveTab(tab as DashboardTab)}
+        variant="primary"
+      >
+        {activeTab === 'summary' && (
+          <DashboardSummaryTab
+            settingFilter={settingFilter}
+            totalFacilities={totalFacilities}
+            totalAnomalies={totalAnomalies}
+            filteredNetIncome={filteredNetIncome}
+            kpiAverages={kpiAverages}
+            currentBenchmark={currentBenchmark}
+            settingCounts={settingCounts}
+            filteredStateStats={filteredStateStats}
+            insights={insights}
+          />
+        )}
+        {activeTab === 'analytics' && (
+          <DashboardAnalyticsTab
+            periodId={periodId}
+            filteredTopPerformers={filteredTopPerformers}
+            filteredBottomPerformers={filteredBottomPerformers}
+            totalCount={totalCount}
+            oneThirdCount={oneThirdCount}
+            onFacilitySelect={onFacilitySelect}
+          />
+        )}
+        {activeTab === 'exports' && (
+          <DashboardExportsTab periodId={periodId} />
+        )}
+      </TabPanel>
     </div>
   );
 }
@@ -819,11 +449,4 @@ function formatPeriod(periodId: string): string {
   const [year, month] = periodId.split('-');
   const date = new Date(parseInt(year), parseInt(month) - 1);
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
-}
-
-function getMarginVariant(value: number | null, target: number): 'success' | 'warning' | 'danger' | 'default' {
-  if (value === null) return 'default';
-  if (value >= target) return 'success';
-  if (value >= target * 0.5) return 'warning';
-  return 'danger';
 }
