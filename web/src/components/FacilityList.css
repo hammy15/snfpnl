@@ -264,8 +264,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   background: transparent;
   border: none;
   color: var(--text-muted);
@@ -287,8 +287,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   background: transparent;
   border: none;
   color: var(--text-muted);
@@ -305,4 +305,87 @@
 .delete-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Tablet breakpoint */
+@media (max-width: 1024px) {
+  .facility-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+/* Mobile breakpoint */
+@media (max-width: 768px) {
+  .facility-list-header {
+    margin-bottom: 20px;
+  }
+
+  .facility-list-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .facility-list-filters {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .search-box {
+    max-width: 100%;
+  }
+
+  .filter-group {
+    flex-wrap: wrap;
+  }
+
+  .state-filter {
+    min-width: 120px;
+    flex: 1;
+  }
+
+  .facility-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .facility-card {
+    padding: 16px;
+  }
+
+  .setting-tabs {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .setting-tab {
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  .empty-state {
+    padding: 40px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .facility-card-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .facility-badges {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+  }
+
+  .facility-stats {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .stat-item {
+    min-width: calc(50% - 6px);
+  }
 }

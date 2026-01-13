@@ -152,3 +152,36 @@
 .kpi-card-trend.down {
   color: var(--danger);
 }
+
+/* Mobile breakpoint */
+@media (max-width: 768px) {
+  .kpi-card {
+    padding: 16px;
+  }
+
+  .kpi-card-header {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .kpi-card-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .kpi-card-title {
+    font-size: 0.8rem;
+  }
+
+  .kpi-card-value {
+    font-size: 1.5rem;
+  }
+
+  .kpi-card-subtitle {
+    font-size: 0.7rem;
+  }
+
+  .kpi-card:hover {
+    transform: none;
+  }
+}

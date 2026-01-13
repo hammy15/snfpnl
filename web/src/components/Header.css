@@ -183,14 +183,45 @@
 }
 
 @media (max-width: 768px) {
+  .header {
+    padding: 0 16px;
+  }
+
   .header-content {
     flex-wrap: wrap;
     height: auto;
-    padding: 16px 0;
-    gap: 16px;
+    padding: 12px 0;
+    gap: 12px;
   }
 
   .header-brand {
     display: none;
+  }
+
+  .header-right {
+    gap: 8px;
+  }
+
+  .period-select {
+    min-width: 130px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+
+  .help-btn,
+  .ai-toggle {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0 12px;
+  }
+
+  .period-select {
+    min-width: 110px;
+    font-size: 0.8rem;
   }
 }
