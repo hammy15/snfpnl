@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2, X, Info } from 'lucide-react';
+import { useToast } from '../contexts/ToastContext';
 import './DataUpload.css';
 
 interface UploadResult {
@@ -31,6 +32,7 @@ export function DataUpload() {
   const [uploadStatus, setUploadStatus] = useState<UploadStatus | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { showSuccess, showError } = useToast();
 
   // Fetch upload status on mount
   useState(() => {
@@ -75,6 +77,7 @@ export function DataUpload() {
         message: 'Invalid file type',
         error: 'Only Excel files (.xlsx, .xls) are allowed'
       });
+      showError('Invalid File', 'Only Excel files (.xlsx, .xls) are allowed');
       return;
     }
 
@@ -115,6 +118,7 @@ export function DataUpload() {
           facilityIds: data.facilityIds
         });
         setSelectedFile(null);
+        showSuccess('Upload Complete', data.message || 'Data uploaded successfully');
         fetchUploadStatus(); // Refresh status after successful upload
       } else {
         setUploadResult({
@@ -123,14 +127,17 @@ export function DataUpload() {
           error: data.error,
           details: data.details
         });
+        showError('Upload Failed', data.error || 'Please check the file format');
       }
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setUploadResult({
         success: false,
         message: 'Upload failed',
         error: 'Network error',
-        details: err instanceof Error ? err.message : 'Unknown error'
+        details: errorMessage
       });
+      showError('Network Error', 'Failed to connect to server. Please try again.');
     } finally {
       setIsUploading(false);
     }

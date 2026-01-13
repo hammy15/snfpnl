@@ -4,6 +4,9 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { FavoritesProvider } from './contexts/FavoritesContext';
 import { RecentFacilitiesProvider } from './contexts/RecentFacilitiesContext';
 import { SavedFiltersProvider } from './contexts/SavedFiltersContext';
+import { ToastProvider } from './contexts/ToastContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { getErrorMessage, isRetryableError } from './utils/apiError';
 import './styles/print.css';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Header } from './components/Header';
@@ -30,7 +33,18 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,
-      retry: 1,
+      retry: (failureCount, error) => {
+        // Retry up to 2 times for retryable errors
+        if (failureCount >= 2) return false;
+        return isRetryableError(error);
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    },
+    mutations: {
+      retry: false,
+      onError: (error) => {
+        console.error('Mutation error:', getErrorMessage(error));
+      },
     },
   },
 });
@@ -201,19 +215,23 @@ function AppContent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <FavoritesProvider>
-          <RecentFacilitiesProvider>
-            <SavedFiltersProvider>
-              <LoginGate>
-                <AppContent />
-              </LoginGate>
-            </SavedFiltersProvider>
-          </RecentFacilitiesProvider>
-        </FavoritesProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <ToastProvider>
+            <FavoritesProvider>
+              <RecentFacilitiesProvider>
+                <SavedFiltersProvider>
+                  <LoginGate>
+                    <AppContent />
+                  </LoginGate>
+                </SavedFiltersProvider>
+              </RecentFacilitiesProvider>
+            </FavoritesProvider>
+          </ToastProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
