@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { TrendingUp, TrendingDown, ChevronDown, ChevronRight, Building2, DollarSign, Percent, Users } from 'lucide-react';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { formatPeriod } from '../../utils/dateFormatters';
 import './PortfolioT12M.css';
 
 interface PortfolioT12MProps {
@@ -113,12 +114,6 @@ function generateT12MPeriods(currentPeriod: string): string[] {
   }
 
   return periods;
-}
-
-function formatPeriod(periodId: string): string {
-  const [year, month] = periodId.split('-');
-  const date = new Date(parseInt(year), parseInt(month) - 1);
-  return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
 }
 
 export function PortfolioT12M({ periodId, onFacilitySelect }: PortfolioT12MProps) {

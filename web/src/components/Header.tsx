@@ -6,6 +6,7 @@ import { MobileNav } from './MobileNav';
 import { Logo } from './Logo';
 import { ExcelExport } from './export/ExcelExport';
 import { SyncButton } from './SyncButton';
+import { formatPeriod } from '../utils/dateFormatters';
 import './Header.css';
 
 type View = 'dashboard' | 'facilities' | 'facility-detail' | 'tools' | 'map' | 'ppd' | 'verification' | 'executive' | 'comparison' | 'alerts' | 'directory' | 'upload' | 'manage';
@@ -170,10 +171,4 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
       </div>
     </header>
   );
-}
-
-function formatPeriod(periodId: string): string {
-  const [year, month] = periodId.split('-');
-  const date = new Date(parseInt(year), parseInt(month) - 1);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
 }

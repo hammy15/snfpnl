@@ -4,6 +4,7 @@ import { TrendingUp, TrendingDown, Edit2, Save, RotateCcw, DollarSign, Users, Ac
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine, LabelList } from 'recharts';
 import { SectionExplainer, InfoTooltip } from './ui/InfoTooltip';
 import { NarrativeReport } from './NarrativeReport';
+import { formatPeriod } from '../utils/dateFormatters';
 import './PPDRanking.css';
 
 const BENCHMARKS_STORAGE_KEY = 'ppd-ranking-benchmarks';
@@ -819,10 +820,4 @@ export function PPDRanking({ periodId, onFacilitySelect }: PPDRankingProps) {
       />
     </div>
   );
-}
-
-function formatPeriod(periodId: string): string {
-  const [year, month] = periodId.split('-');
-  const date = new Date(parseInt(year), parseInt(month) - 1);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
 }

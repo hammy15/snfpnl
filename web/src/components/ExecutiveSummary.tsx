@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { SectionExplainer, InfoTooltip } from './ui/InfoTooltip';
 import { NarrativeReport } from './NarrativeReport';
+import { formatPeriod } from '../utils/dateFormatters';
 import './ExecutiveSummary.css';
 
 interface ExecutiveSummaryProps {
@@ -503,10 +504,4 @@ export function ExecutiveSummary({ periodId, onFacilitySelect }: ExecutiveSummar
       </div>
     </div>
   );
-}
-
-function formatPeriod(periodId: string): string {
-  const [year, month] = periodId.split('-');
-  const date = new Date(parseInt(year), parseInt(month) - 1);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
 }

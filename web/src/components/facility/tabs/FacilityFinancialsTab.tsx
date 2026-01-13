@@ -2,6 +2,7 @@ import { DollarSign, Percent, Users, Activity, TrendingUp } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import { KPICard } from '../../KPICard';
 import { InfoTooltip } from '../../ui/InfoTooltip';
+import { formatPeriod } from '../../../utils/dateFormatters';
 
 interface KPIResult {
   kpi_id: string;
@@ -403,12 +404,6 @@ export function FacilityFinancialsTab({
       </section>
     </>
   );
-}
-
-function formatPeriod(periodId: string): string {
-  const [year, month] = periodId.split('-');
-  const date = new Date(parseInt(year), parseInt(month) - 1);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
 }
 
 function formatKPIName(kpiId: string): string {

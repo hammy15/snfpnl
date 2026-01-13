@@ -1,4 +1,5 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceDot, ReferenceLine } from 'recharts';
+import { formatPeriod } from '../../utils/dateFormatters';
 
 interface T12MTrendChartProps {
   metric: {
@@ -36,12 +37,6 @@ function formatValue(value: number, format: string): string {
     default:
       return value.toFixed(2);
   }
-}
-
-function formatPeriod(periodId: string): string {
-  const [year, month] = periodId.split('-');
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return months[parseInt(month) - 1] + ' ' + year.slice(2);
 }
 
 export function T12MTrendChart({ metric, onClose }: T12MTrendChartProps) {

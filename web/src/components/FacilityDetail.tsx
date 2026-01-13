@@ -5,6 +5,7 @@ import { useFavorites } from '../contexts/FavoritesContext';
 import { PDFExport } from './export/PDFExport';
 import { TabPanel } from './ui/TabPanel';
 import { FacilityOverviewTab, FacilityFinancialsTab, FacilityAnalysisTab, FacilityReportsTab } from './facility/tabs';
+import { formatPeriod } from '../utils/dateFormatters';
 import './FacilityDetail.css';
 
 interface FacilityDetailProps {
@@ -255,10 +256,4 @@ export function FacilityDetail({ facilityId, periodId, onBack }: FacilityDetailP
       </TabPanel>
     </div>
   );
-}
-
-function formatPeriod(periodId: string): string {
-  const [year, month] = periodId.split('-');
-  const date = new Date(parseInt(year), parseInt(month) - 1);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
 }

@@ -1,4 +1,5 @@
 import { ScatterChart, Scatter, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { formatPeriod } from '../../utils/dateFormatters';
 
 interface CorrelationScatterPlotProps {
   data: { x: number; y: number; period: string }[];
@@ -15,12 +16,6 @@ function formatValue(value: number): string {
   if (Math.abs(value) >= 100) return value.toFixed(0);
   if (Math.abs(value) >= 10) return value.toFixed(1);
   return value.toFixed(2);
-}
-
-function formatPeriod(periodId: string): string {
-  const [year, month] = periodId.split('-');
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return months[parseInt(month) - 1] + " '" + year.slice(2);
 }
 
 export function CorrelationScatterPlot({ data, xLabel, yLabel, correlation }: CorrelationScatterPlotProps) {

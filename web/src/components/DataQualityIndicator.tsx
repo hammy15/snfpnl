@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Database, CheckCircle, AlertTriangle, XCircle, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { formatPeriod } from '../utils/dateFormatters';
 import './DataQualityIndicator.css';
 
 interface DataQualityProps {
@@ -136,10 +137,4 @@ export function DataQualityIndicator({ periodId, compact = false }: DataQualityP
       )}
     </div>
   );
-}
-
-function formatPeriod(periodId: string): string {
-  const [year, month] = periodId.split('-');
-  const date = new Date(parseInt(year), parseInt(month) - 1);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
 }

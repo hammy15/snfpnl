@@ -4,6 +4,7 @@ import { LayoutDashboard, BarChart3, FileText } from 'lucide-react';
 import { SectionExplainer } from './ui/InfoTooltip';
 import { TabPanel } from './ui/TabPanel';
 import { DashboardSummaryTab, DashboardAnalyticsTab, DashboardExportsTab } from './dashboard/tabs';
+import { formatPeriod } from '../utils/dateFormatters';
 import './Dashboard.css';
 
 type SettingFilter = 'all' | 'SNF' | 'ALF' | 'ILF';
@@ -443,10 +444,4 @@ export function Dashboard({ periodId, settingFilter, onSettingFilterChange, onFa
       </TabPanel>
     </div>
   );
-}
-
-function formatPeriod(periodId: string): string {
-  const [year, month] = periodId.split('-');
-  const date = new Date(parseInt(year), parseInt(month) - 1);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
 }
