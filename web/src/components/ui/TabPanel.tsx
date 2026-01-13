@@ -25,7 +25,7 @@ export function TabPanel({
 }: TabPanelProps) {
   return (
     <div className="tab-panel-container">
-      <nav className={`tab-panel-nav ${variant}`} role="tablist">
+      <nav className={`tab-panel-nav ${variant}`} role="tablist" aria-label="Content tabs">
         {tabs.map((tab) => (
           <button
             key={tab.id}

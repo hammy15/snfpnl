@@ -393,10 +393,13 @@ export const Dashboard = memo(function Dashboard({ periodId, settingFilter, onSe
       </div>
 
       {/* Setting Type Filter Tabs */}
-      <div className="setting-tabs mb-6">
+      <div className="setting-tabs mb-6" role="tablist" aria-label="Filter by facility type">
         {(['all', 'SNF', 'ALF', 'ILF'] as const).map((setting) => (
           <button
             key={setting}
+            role="tab"
+            aria-selected={settingFilter === setting}
+            aria-controls="dashboard-content"
             className={`setting-tab ${settingFilter === setting ? 'active' : ''}`}
             onClick={() => onSettingFilterChange(setting)}
           >

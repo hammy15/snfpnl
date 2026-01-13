@@ -40,15 +40,17 @@ export function MobileNav({ currentView, onNavigate }: MobileNavProps) {
       <button
         className="mobile-menu-btn"
         onClick={() => setIsOpen(true)}
-        aria-label="Open menu"
+        aria-label="Open navigation menu"
+        aria-expanded={isOpen}
+        aria-controls="mobile-navigation"
       >
         <Menu size={24} />
       </button>
 
       {isOpen && (
         <>
-          <div className="mobile-nav-overlay" onClick={() => setIsOpen(false)} />
-          <nav className="mobile-nav">
+          <div className="mobile-nav-overlay" onClick={() => setIsOpen(false)} aria-hidden="true" />
+          <nav className="mobile-nav" id="mobile-navigation" aria-label="Main navigation">
             <div className="mobile-nav-header">
               <div className="mobile-nav-brand">
                 <Building2 size={20} />
@@ -63,12 +65,14 @@ export function MobileNav({ currentView, onNavigate }: MobileNavProps) {
               </button>
             </div>
 
-            <div className="mobile-nav-items">
+            <div className="mobile-nav-items" role="menu">
               {NAV_ITEMS.map(item => (
                 <button
                   key={item.view}
+                  role="menuitem"
                   className={`mobile-nav-item ${currentView === item.view ? 'active' : ''}`}
                   onClick={() => handleNavigate(item.view)}
+                  aria-current={currentView === item.view ? 'page' : undefined}
                 >
                   <item.icon size={20} />
                   <span>{item.label}</span>

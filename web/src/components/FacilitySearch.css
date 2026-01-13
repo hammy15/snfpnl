@@ -120,8 +120,14 @@
   transition: all 0.15s ease;
 }
 
-.result-item:hover {
+.result-item:hover,
+.result-item.active {
   background: rgba(102, 126, 234, 0.15);
+}
+
+.result-item.active {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
 }
 
 .result-item svg {

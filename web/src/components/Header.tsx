@@ -51,8 +51,10 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
           <FacilitySearch facilities={facilities} onSelect={onFacilitySelect} />
         </div>
 
-        <nav className="header-nav">
+        <nav className="header-nav" role="tablist" aria-label="Main navigation">
           <button
+            role="tab"
+            aria-selected={currentView === 'dashboard'}
             className={`nav-btn ${currentView === 'dashboard' ? 'active' : ''}`}
             onClick={() => onNavigate('dashboard')}
           >
@@ -60,6 +62,8 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
             Dashboard
           </button>
           <button
+            role="tab"
+            aria-selected={currentView === 'facilities'}
             className={`nav-btn ${currentView === 'facilities' ? 'active' : ''}`}
             onClick={() => onNavigate('facilities')}
           >
@@ -67,6 +71,8 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
             Facilities
           </button>
           <button
+            role="tab"
+            aria-selected={currentView === 'map'}
             className={`nav-btn ${currentView === 'map' ? 'active' : ''}`}
             onClick={() => onNavigate('map')}
           >
@@ -74,6 +80,8 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
             Heat Map
           </button>
           <button
+            role="tab"
+            aria-selected={currentView === 'tools'}
             className={`nav-btn ${currentView === 'tools' ? 'active' : ''}`}
             onClick={() => onNavigate('tools')}
           >
@@ -81,6 +89,8 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
             Tools
           </button>
           <button
+            role="tab"
+            aria-selected={currentView === 'ppd'}
             className={`nav-btn ${currentView === 'ppd' ? 'active' : ''}`}
             onClick={() => onNavigate('ppd')}
           >
@@ -88,6 +98,8 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
             PPD
           </button>
           <button
+            role="tab"
+            aria-selected={currentView === 'verification'}
             className={`nav-btn ${currentView === 'verification' ? 'active' : ''}`}
             onClick={() => onNavigate('verification')}
           >
@@ -95,6 +107,8 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
             Verify
           </button>
           <button
+            role="tab"
+            aria-selected={currentView === 'executive'}
             className={`nav-btn ${currentView === 'executive' ? 'active' : ''}`}
             onClick={() => onNavigate('executive')}
           >
@@ -102,6 +116,8 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
             Summary
           </button>
           <button
+            role="tab"
+            aria-selected={currentView === 'comparison'}
             className={`nav-btn ${currentView === 'comparison' ? 'active' : ''}`}
             onClick={() => onNavigate('comparison')}
           >
@@ -109,6 +125,8 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
             Compare
           </button>
           <button
+            role="tab"
+            aria-selected={currentView === 'alerts'}
             className={`nav-btn ${currentView === 'alerts' ? 'active' : ''}`}
             onClick={() => onNavigate('alerts')}
           >
@@ -116,6 +134,8 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
             Alerts
           </button>
           <button
+            role="tab"
+            aria-selected={currentView === 'directory'}
             className={`nav-btn ${currentView === 'directory' ? 'active' : ''}`}
             onClick={() => onNavigate('directory')}
           >
@@ -123,6 +143,8 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
             Directory
           </button>
           <button
+            role="tab"
+            aria-selected={currentView === 'upload'}
             className={`nav-btn ${currentView === 'upload' ? 'active' : ''}`}
             onClick={() => onNavigate('upload')}
           >
@@ -130,6 +152,8 @@ export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange
             Upload
           </button>
           <button
+            role="tab"
+            aria-selected={currentView === 'manage'}
             className={`nav-btn ${currentView === 'manage' ? 'active' : ''}`}
             onClick={() => onNavigate('manage')}
           >
