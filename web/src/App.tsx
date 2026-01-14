@@ -28,6 +28,7 @@ import { FacilityManagement } from './components/FacilityManagement';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { UserGuide } from './components/UserGuide';
 import { CrashTest } from './components/CrashTest';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -211,6 +212,7 @@ function AppContent() {
         onClose={() => setIsGuideOpen(false)}
       />
       <CrashTest />
+      <OfflineIndicator />
     </div>
   );
 }
