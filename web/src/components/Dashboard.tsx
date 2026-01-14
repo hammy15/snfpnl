@@ -4,6 +4,7 @@ import { LayoutDashboard, BarChart3, FileText } from 'lucide-react';
 import { SectionExplainer } from './ui/InfoTooltip';
 import { TabPanel } from './ui/TabPanel';
 import { DashboardSummaryTab, DashboardAnalyticsTab, DashboardExportsTab } from './dashboard/tabs';
+import { DashboardSkeleton } from './dashboard/DashboardSkeleton';
 import { formatPeriod } from '../utils/dateFormatters';
 import { api } from '../api';
 import './Dashboard.css';
@@ -342,11 +343,7 @@ export const Dashboard = memo(function Dashboard({ periodId, settingFilter, onSe
 
   // Early returns AFTER all hooks
   if (isLoading) {
-    return (
-      <div className="loading">
-        <div className="spinner" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error) {

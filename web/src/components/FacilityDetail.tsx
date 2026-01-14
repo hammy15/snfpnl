@@ -5,6 +5,7 @@ import { useFavorites } from '../contexts/FavoritesContext';
 import { PDFExport } from './export/PDFExport';
 import { TabPanel } from './ui/TabPanel';
 import { FacilityOverviewTab, FacilityFinancialsTab, FacilityAnalysisTab, FacilityReportsTab } from './facility/tabs';
+import { FacilityDetailSkeleton } from './facility/FacilityDetailSkeleton';
 import { formatPeriod } from '../utils/dateFormatters';
 import { api } from '../api';
 import './FacilityDetail.css';
@@ -138,11 +139,7 @@ export function FacilityDetail({ facilityId, periodId, onBack }: FacilityDetailP
   });
 
   if (facilityLoading || kpisLoading) {
-    return (
-      <div className="loading">
-        <div className="spinner" />
-      </div>
-    );
+    return <FacilityDetailSkeleton />;
   }
 
   if (!facility) {
