@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FileText, Download, Loader2, RefreshCw, Copy, Check, Building2, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, ChevronDown, ChevronRight, Target, Lightbulb, Shield } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { formatMarkdownSafe } from '../utils/sanitize';
 import './NarrativeReport.css';
 
 interface NarrativeReportData {
@@ -510,7 +511,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
 
           {/* Executive Narrative */}
           <div className="packet-section executive-narrative">
-            <div className="narrative-text" dangerouslySetInnerHTML={{ __html: formatMarkdown(packet.executiveNarrative) }} />
+            <div className="narrative-text" dangerouslySetInnerHTML={{ __html: formatMarkdownSafe(packet.executiveNarrative) }} />
           </div>
 
           {/* Facility Summary Metrics (for facility scope) */}
@@ -1110,7 +1111,7 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
                 </h3>
               </div>
               {expandedSections.has('detailed') && (
-                <div className="detailed-narrative" dangerouslySetInnerHTML={{ __html: formatMarkdown(packet.detailedNarrative) }} />
+                <div className="detailed-narrative" dangerouslySetInnerHTML={{ __html: formatMarkdownSafe(packet.detailedNarrative) }} />
               )}
             </div>
           )}
@@ -1283,16 +1284,6 @@ export function FinancialPacketGenerator({ facilityId, periodId }: FinancialPack
   );
 }
 
-function formatMarkdown(text: string): string {
-  if (!text) return '';
-  return text
-    .replace(/## (.*)/g, '<h3>$1</h3>')
-    .replace(/### (.*)/g, '<h4>$1</h4>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/• (.*)/g, '<li>$1</li>')
-    .replace(/\n/g, '<br/>');
-}
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function generateEnhancedPacketHTML(packet: FinancialPacket & { facilitySummaries?: Array<{ name: string; state: string; setting: string; margin: number; narrative: string; status: string }> }, _scope: string): string {
   // Build facility summaries table rows if available
@@ -1346,7 +1337,7 @@ function generateEnhancedPacketHTML(packet: FinancialPacket & { facilitySummarie
       </div>
 
       <h2>Executive Summary</h2>
-      ${packet.executiveNarrative ? `<div>${formatMarkdown(packet.executiveNarrative)}</div>` : ''}
+      ${packet.executiveNarrative ? `<div>${formatMarkdownSafe(packet.executiveNarrative)}</div>` : ''}
 
       ${packet.portfolioSummary ? `
         <div class="metric-grid">
@@ -1397,7 +1388,7 @@ function generateEnhancedPacketHTML(packet: FinancialPacket & { facilitySummarie
       ${packet.detailedNarrative ? `
         <div class="page-break"></div>
         <h2>Detailed Analysis</h2>
-        <div>${formatMarkdown(packet.detailedNarrative)}</div>
+        <div>${formatMarkdownSafe(packet.detailedNarrative)}</div>
       ` : ''}
 
       ${packet.recommendations && packet.recommendations.length > 0 ? `
