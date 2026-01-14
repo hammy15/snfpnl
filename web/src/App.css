@@ -8,3 +8,10 @@
 .fade-in {
   animation: fadeIn 0.3s ease;
 }
+
+/* Global chart container fix for Recharts ResponsiveContainer */
+.chart-container {
+  min-width: 100px;
+  min-height: 100px;
+  width: 100%;
+}

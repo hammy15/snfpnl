@@ -1,8 +1,7 @@
-import { memo, useMemo, useState } from 'react';
+import { memo, useMemo, useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { LayoutDashboard, BarChart3, FileText } from 'lucide-react';
+import { LayoutDashboard, BarChart3, FileText, ChevronDown, Building2 } from 'lucide-react';
 import { SectionExplainer } from './ui/InfoTooltip';
-import { TabPanel } from './ui/TabPanel';
 import { DashboardSummaryTab, DashboardAnalyticsTab, DashboardExportsTab } from './dashboard/tabs';
 import { DashboardSkeleton } from './dashboard/DashboardSkeleton';
 import { formatPeriod } from '../utils/dateFormatters';
@@ -108,6 +107,19 @@ type DashboardTab = 'summary' | 'analytics' | 'exports';
 
 export const Dashboard = memo(function Dashboard({ periodId, settingFilter, onSettingFilterChange, onFacilitySelect }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('summary');
+  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setFilterDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['dashboard', periodId],
@@ -356,17 +368,26 @@ export const Dashboard = memo(function Dashboard({ periodId, settingFilter, onSe
   const totalAnomalies = data.anomalySummary.reduce((sum, s) => sum + s.count, 0);
 
   const dashboardTabs = [
-    { id: 'summary' as const, label: 'Summary', icon: <LayoutDashboard size={18} /> },
-    { id: 'analytics' as const, label: 'Analytics', icon: <BarChart3 size={18} /> },
-    { id: 'exports' as const, label: 'Exports', icon: <FileText size={18} /> },
+    { id: 'summary' as const, label: 'Summary', icon: <LayoutDashboard size={18} />, description: 'KPIs & overview' },
+    { id: 'analytics' as const, label: 'Analytics', icon: <BarChart3 size={18} />, description: 'Rankings & trends' },
+    { id: 'exports' as const, label: 'Exports', icon: <FileText size={18} />, description: 'Reports & PDFs' },
   ];
+
+  const filterOptions = [
+    { id: 'all' as const, label: 'All Types', count: facilities.length },
+    { id: 'SNF' as const, label: 'SNF', count: settingCounts['SNF'] || 0 },
+    { id: 'ALF' as const, label: 'ALF', count: settingCounts['ALF'] || 0 },
+    { id: 'ILF' as const, label: 'ILF', count: settingCounts['ILF'] || 0 },
+  ];
+
+  const currentFilter = filterOptions.find(f => f.id === settingFilter) || filterOptions[0];
 
   return (
     <div className="dashboard animate-fade-in">
       <SectionExplainer
         title="SNFPNL Dashboard"
         subtitle="Financial performance overview"
-        explanation="This dashboard provides a high-level view of your entire portfolio's financial health. Use the setting tabs to filter by facility type (SNF, ALF, ILF) and quickly identify which buildings are performing well vs. those needing attention."
+        explanation="This dashboard provides a high-level view of your entire portfolio's financial health. Use the filter dropdown to select facility type (SNF, ALF, ILF) and the tabs to switch between Summary, Analytics, and Exports views."
         tips={[
           "Green metrics indicate performance at or above target; yellow/red signal areas needing review",
           "Click on any facility row to drill down into detailed financials",
@@ -378,36 +399,68 @@ export const Dashboard = memo(function Dashboard({ periodId, settingFilter, onSe
           "Review the Insights section for AI-generated suggestions specific to your data"
         ]}
       />
-      <div className="dashboard-header-period">
-        <span className="period-badge">{formatPeriod(periodId)}</span>
-      </div>
 
-      {/* Setting Type Filter Tabs */}
-      <div className="setting-tabs mb-6" role="tablist" aria-label="Filter by facility type">
-        {(['all', 'SNF', 'ALF', 'ILF'] as const).map((setting) => (
+      {/* Unified Toolbar */}
+      <div className="dashboard-toolbar">
+        {/* Filter Dropdown */}
+        <div className="toolbar-filter" ref={dropdownRef}>
           <button
-            key={setting}
-            role="tab"
-            aria-selected={settingFilter === setting}
-            aria-controls="dashboard-content"
-            className={`setting-tab ${settingFilter === setting ? 'active' : ''}`}
-            onClick={() => onSettingFilterChange(setting)}
+            className="filter-dropdown-trigger"
+            onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
+            aria-expanded={filterDropdownOpen}
+            aria-haspopup="listbox"
           >
-            {setting === 'all' ? 'All Types' : setting}
-            <span className="tab-count">
-              {setting === 'all' ? facilities.length : settingCounts[setting] || 0}
-            </span>
+            <Building2 size={16} />
+            <span className="filter-label">{currentFilter.label}</span>
+            <span className="filter-count">{currentFilter.count}</span>
+            <ChevronDown size={16} className={`filter-chevron ${filterDropdownOpen ? 'open' : ''}`} />
           </button>
-        ))}
+          {filterDropdownOpen && (
+            <div className="filter-dropdown-menu" role="listbox">
+              {filterOptions.map((option) => (
+                <button
+                  key={option.id}
+                  role="option"
+                  aria-selected={settingFilter === option.id}
+                  className={`filter-dropdown-item ${settingFilter === option.id ? 'active' : ''}`}
+                  onClick={() => {
+                    onSettingFilterChange(option.id);
+                    setFilterDropdownOpen(false);
+                  }}
+                >
+                  <span>{option.label}</span>
+                  <span className="filter-item-count">{option.count}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* View Tabs */}
+        <nav className="toolbar-tabs" role="tablist" aria-label="Dashboard views">
+          {dashboardTabs.map((tab) => (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              className={`toolbar-tab ${activeTab === tab.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+              title={tab.description}
+            >
+              {tab.icon}
+              <span className="toolbar-tab-label">{tab.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        {/* Period Badge */}
+        <div className="toolbar-period">
+          <span className="period-badge">{formatPeriod(periodId)}</span>
+        </div>
       </div>
 
-      {/* View Tabs */}
-      <TabPanel
-        tabs={dashboardTabs}
-        activeTab={activeTab}
-        onTabChange={(tab) => setActiveTab(tab as DashboardTab)}
-        variant="primary"
-      >
+      {/* Tab Content */}
+      <div className="dashboard-content">
         {activeTab === 'summary' && (
           <DashboardSummaryTab
             settingFilter={settingFilter}
@@ -434,7 +487,7 @@ export const Dashboard = memo(function Dashboard({ periodId, settingFilter, onSe
         {activeTab === 'exports' && (
           <DashboardExportsTab periodId={periodId} />
         )}
-      </TabPanel>
+      </div>
     </div>
   );
 });

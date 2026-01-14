@@ -22,6 +22,252 @@
   color: var(--text-primary);
 }
 
+/* Unified Facility Toolbar */
+.facility-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: var(--bg-glass);
+  backdrop-filter: var(--blur-glass);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-glass);
+  margin-bottom: 24px;
+}
+
+.toolbar-facility-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.toolbar-facility-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: rgba(102, 126, 234, 0.15);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.toolbar-facility-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.facility-name-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.toolbar-facility-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.facility-setting-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--primary);
+  color: white;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.facility-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.facility-beds {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.toolbar-favorite-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.toolbar-favorite-btn:hover {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
+.toolbar-favorite-btn.active {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
+/* Toolbar Actions */
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.toolbar-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(102, 126, 234, 0.15);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toolbar-action-btn:hover {
+  background: rgba(102, 126, 234, 0.25);
+  border-color: rgba(102, 126, 234, 0.5);
+}
+
+.toolbar-action-btn svg {
+  color: var(--primary);
+}
+
+.action-btn-label {
+  white-space: nowrap;
+}
+
+/* Facility Content */
+.facility-content {
+  animation: tabFadeIn 0.2s ease;
+  min-width: 0;
+  min-height: 200px;
+}
+
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Facility Toolbar */
+@media (max-width: 1024px) {
+  .facility-toolbar {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .toolbar-facility-info {
+    order: 1;
+    flex: 1;
+  }
+
+  .toolbar-actions {
+    order: 2;
+  }
+
+  .toolbar-tabs {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-glass);
+    margin-top: 4px;
+  }
+}
+
+@media (max-width: 768px) {
+  .facility-toolbar {
+    padding: 10px;
+  }
+
+  .facility-name-text {
+    max-width: 120px;
+    font-size: 0.85rem;
+  }
+
+  .toolbar-facility-meta {
+    display: none;
+  }
+
+  .toolbar-tab {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
+  .toolbar-tab-label {
+    display: none;
+  }
+
+  .toolbar-tab.active .toolbar-tab-label {
+    display: inline;
+  }
+
+  .action-btn-label {
+    display: none;
+  }
+
+  .toolbar-action-btn {
+    padding: 8px;
+  }
+
+  .period-badge {
+    padding: 6px 10px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar-facility-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .toolbar-facility-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .facility-name-text {
+    max-width: 80px;
+  }
+}
+
+/* Legacy styles - kept for compatibility */
 .facility-header {
   display: flex;
   justify-content: space-between;

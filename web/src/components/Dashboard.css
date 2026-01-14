@@ -2,6 +2,200 @@
   animation: fadeIn 0.5s ease forwards;
 }
 
+/* Unified Toolbar */
+.dashboard-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 12px;
+  background: var(--bg-glass);
+  backdrop-filter: var(--blur-glass);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-glass);
+  margin-bottom: 24px;
+}
+
+/* Filter Dropdown */
+.toolbar-filter {
+  position: relative;
+}
+
+.filter-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+}
+
+.filter-dropdown-trigger:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--primary);
+}
+
+.filter-label {
+  flex: 1;
+}
+
+.filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--primary);
+  color: white;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.filter-chevron {
+  transition: transform 0.2s ease;
+  opacity: 0.6;
+}
+
+.filter-chevron.open {
+  transform: rotate(180deg);
+}
+
+.filter-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 160px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.15s ease;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filter-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.filter-dropdown-item.active {
+  background: rgba(102, 126, 234, 0.15);
+  color: var(--primary);
+}
+
+.filter-item-count {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* Toolbar Tabs */
+.toolbar-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.toolbar-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toolbar-tab:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.toolbar-tab.active {
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.toolbar-tab-label {
+  white-space: nowrap;
+}
+
+/* Period Badge */
+.toolbar-period {
+  flex-shrink: 0;
+}
+
+.period-badge {
+  background: var(--gradient-primary);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  white-space: nowrap;
+}
+
+/* Dashboard Content */
+.dashboard-content {
+  animation: tabFadeIn 0.2s ease;
+  min-width: 0;
+  min-height: 200px;
+}
+
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Legacy styles kept for compatibility */
 .dashboard-header {
   display: flex;
   justify-content: space-between;
@@ -20,16 +214,7 @@
   gap: 16px;
 }
 
-.period-badge {
-  background: var(--gradient-primary);
-  color: white;
-  padding: 8px 20px;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
+/* Old setting tabs - kept for other components */
 .setting-tabs {
   display: flex;
   gap: 8px;
@@ -415,6 +600,81 @@
 
 .cascadia-metric.highlight .metric-value {
   font-size: 1.75rem;
+}
+
+/* Responsive Toolbar */
+@media (max-width: 768px) {
+  .dashboard-toolbar {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .toolbar-filter {
+    order: 1;
+  }
+
+  .toolbar-period {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .toolbar-tabs {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-glass);
+    margin-top: 4px;
+  }
+
+  .toolbar-tab {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+  }
+
+  .toolbar-tab-label {
+    display: none;
+  }
+
+  .toolbar-tab.active .toolbar-tab-label {
+    display: inline;
+  }
+
+  .filter-dropdown-trigger {
+    min-width: 120px;
+    padding: 8px 12px;
+  }
+
+  .period-badge {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-toolbar {
+    padding: 10px;
+  }
+
+  .toolbar-tabs {
+    gap: 2px;
+  }
+
+  .toolbar-tab {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .filter-dropdown-trigger {
+    min-width: auto;
+  }
+
+  .filter-label {
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 @media (max-width: 1024px) {

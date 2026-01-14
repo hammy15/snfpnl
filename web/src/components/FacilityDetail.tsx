@@ -3,7 +3,6 @@ import { useRef, useState } from 'react';
 import { ArrowLeft, Building2, MapPin, FileText, Star, LayoutDashboard, DollarSign, BarChart3, FileBarChart } from 'lucide-react';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { PDFExport } from './export/PDFExport';
-import { TabPanel } from './ui/TabPanel';
 import { FacilityOverviewTab, FacilityFinancialsTab, FacilityAnalysisTab, FacilityReportsTab } from './facility/tabs';
 import { FacilityDetailSkeleton } from './facility/FacilityDetailSkeleton';
 import { formatPeriod } from '../utils/dateFormatters';
@@ -149,52 +148,72 @@ export function FacilityDetail({ facilityId, periodId, onBack }: FacilityDetailP
   const getKPIValue = (kpiId: string) => kpis.find(k => k.kpi_id === kpiId)?.value ?? null;
 
   const facilityTabs = [
-    { id: 'overview' as const, label: 'Overview', icon: <LayoutDashboard size={18} /> },
-    { id: 'financials' as const, label: 'Financials', icon: <DollarSign size={18} /> },
-    { id: 'analysis' as const, label: 'Analysis', icon: <BarChart3 size={18} /> },
-    { id: 'reports' as const, label: 'Reports', icon: <FileBarChart size={18} /> },
+    { id: 'overview' as const, label: 'Overview', icon: <LayoutDashboard size={18} />, description: 'Summary & ratings' },
+    { id: 'financials' as const, label: 'Financials', icon: <DollarSign size={18} />, description: 'Revenue & costs' },
+    { id: 'analysis' as const, label: 'Analysis', icon: <BarChart3 size={18} />, description: 'Trends & alerts' },
+    { id: 'reports' as const, label: 'Reports', icon: <FileBarChart size={18} />, description: 'Export & notes' },
   ];
 
   return (
     <div className="facility-detail" ref={reportRef}>
+      {/* Back Button */}
       <button className="back-btn" onClick={onBack}>
         <ArrowLeft size={18} />
         Back to Dashboard
       </button>
 
-      <div className="facility-header">
-        <div className="facility-header-left">
-          <div className="facility-icon-large">
-            <Building2 size={32} />
+      {/* Unified Toolbar */}
+      <div className="facility-toolbar">
+        {/* Facility Info */}
+        <div className="toolbar-facility-info">
+          <div className="toolbar-facility-icon">
+            <Building2 size={20} />
           </div>
-          <div>
-            <div className="facility-title-row">
-              <h1>{facility.name}</h1>
-              <button
-                className={`favorite-btn-large ${isFavorite(facilityId) ? 'active' : ''}`}
-                onClick={() => toggleFavorite(facilityId)}
-                title={isFavorite(facilityId) ? 'Remove from favorites' : 'Add to favorites'}
-              >
-                <Star size={22} fill={isFavorite(facilityId) ? 'currentColor' : 'none'} />
-              </button>
-            </div>
-            <div className="facility-meta">
-              <span className="meta-item">
-                <MapPin size={16} />
+          <div className="toolbar-facility-name">
+            <span className="facility-name-text">{facility.name}</span>
+            <div className="toolbar-facility-meta">
+              <span className="facility-setting-badge">{facility.setting}</span>
+              <span className="facility-location">
+                <MapPin size={12} />
                 {facility.state || 'Unknown'}
               </span>
-              <span className="meta-item badge badge-info">{facility.setting}</span>
               {facility.licensed_beds && (
-                <span className="meta-item">{facility.licensed_beds} beds</span>
+                <span className="facility-beds">{facility.licensed_beds} beds</span>
               )}
             </div>
           </div>
+          <button
+            className={`toolbar-favorite-btn ${isFavorite(facilityId) ? 'active' : ''}`}
+            onClick={() => toggleFavorite(facilityId)}
+            title={isFavorite(facilityId) ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            <Star size={16} fill={isFavorite(facilityId) ? 'currentColor' : 'none'} />
+          </button>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="period-badge">{formatPeriod(periodId)}</div>
-          <button className="generate-packet-quick-btn" onClick={scrollToPacket} title="Generate Financial Packet for this facility">
-            <FileText size={18} />
-            Generate Packet
+
+        {/* View Tabs */}
+        <nav className="toolbar-tabs" role="tablist" aria-label="Facility views">
+          {facilityTabs.map((tab) => (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              className={`toolbar-tab ${activeTab === tab.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+              title={tab.description}
+            >
+              {tab.icon}
+              <span className="toolbar-tab-label">{tab.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        {/* Actions */}
+        <div className="toolbar-actions">
+          <span className="period-badge">{formatPeriod(periodId)}</span>
+          <button className="toolbar-action-btn" onClick={scrollToPacket} title="Generate Financial Packet">
+            <FileText size={16} />
+            <span className="action-btn-label">Packet</span>
           </button>
           <PDFExport
             facilityName={facility.name}
@@ -204,13 +223,8 @@ export function FacilityDetail({ facilityId, periodId, onBack }: FacilityDetailP
         </div>
       </div>
 
-      {/* View Tabs */}
-      <TabPanel
-        tabs={facilityTabs}
-        activeTab={activeTab}
-        onTabChange={(tab) => setActiveTab(tab as FacilityTab)}
-        variant="primary"
-      >
+      {/* Tab Content */}
+      <div className="facility-content">
         {activeTab === 'overview' && (
           <FacilityOverviewTab
             facility={facility}
@@ -241,7 +255,7 @@ export function FacilityDetail({ facilityId, periodId, onBack }: FacilityDetailP
             packetRef={packetRef}
           />
         )}
-      </TabPanel>
+      </div>
     </div>
   );
 }
