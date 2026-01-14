@@ -5,6 +5,7 @@ import { SectionExplainer } from './ui/InfoTooltip';
 import { TabPanel } from './ui/TabPanel';
 import { DashboardSummaryTab, DashboardAnalyticsTab, DashboardExportsTab } from './dashboard/tabs';
 import { formatPeriod } from '../utils/dateFormatters';
+import { api } from '../api';
 import './Dashboard.css';
 
 type SettingFilter = 'all' | 'SNF' | 'ALF' | 'ILF';
@@ -59,15 +60,11 @@ const BENCHMARKS: Record<string, {
 };
 
 async function fetchDashboard(periodId: string): Promise<DashboardData> {
-  const res = await fetch(`https://snfpnl.onrender.com/api/dashboard/${periodId}`);
-  if (!res.ok) throw new Error('Failed to fetch dashboard');
-  return res.json();
+  return api.dashboard.getDashboard(periodId) as unknown as Promise<DashboardData>;
 }
 
 async function fetchFacilities(): Promise<Facility[]> {
-  const res = await fetch('https://snfpnl.onrender.com/api/facilities');
-  if (!res.ok) throw new Error('Failed to fetch facilities');
-  return res.json();
+  return api.facilities.getFacilities() as unknown as Promise<Facility[]>;
 }
 
 interface KPIData {
@@ -80,9 +77,7 @@ interface KPIData {
 }
 
 async function fetchAllKPIs(periodId: string): Promise<KPIData[]> {
-  const res = await fetch(`https://snfpnl.onrender.com/api/kpis/all/${periodId}`);
-  if (!res.ok) throw new Error('Failed to fetch KPIs');
-  return res.json();
+  return api.kpis.getAllKPIs(periodId) as unknown as Promise<KPIData[]>;
 }
 
 interface FinancialSummary {
@@ -105,9 +100,7 @@ interface FinancialSummary {
 }
 
 async function fetchFinancialSummary(periodId: string): Promise<FinancialSummary> {
-  const res = await fetch(`https://snfpnl.onrender.com/api/financials/summary/${periodId}`);
-  if (!res.ok) throw new Error('Failed to fetch financial summary');
-  return res.json();
+  return api.dashboard.getFinancialSummary(periodId) as unknown as Promise<FinancialSummary>;
 }
 
 type DashboardTab = 'summary' | 'analytics' | 'exports';

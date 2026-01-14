@@ -7,6 +7,7 @@ import { Logo } from './Logo';
 import { ExcelExport } from './export/ExcelExport';
 import { SyncButton } from './SyncButton';
 import { formatPeriod } from '../utils/dateFormatters';
+import { api } from '../api';
 import './Header.css';
 
 type View = 'dashboard' | 'facilities' | 'facility-detail' | 'tools' | 'map' | 'ppd' | 'verification' | 'executive' | 'comparison' | 'alerts' | 'directory' | 'upload' | 'manage';
@@ -31,9 +32,7 @@ interface HeaderProps {
 }
 
 async function fetchPeriods(): Promise<string[]> {
-  const res = await fetch('https://snfpnl.onrender.com/api/periods');
-  if (!res.ok) throw new Error('Failed to fetch periods');
-  return res.json();
+  return api.dashboard.getPeriods() as unknown as Promise<string[]>;
 }
 
 export function Header({ currentView, onNavigate, selectedPeriod, onPeriodChange, onToggleAI, isAIOpen, facilities, onFacilitySelect, onShowGuide }: HeaderProps) {

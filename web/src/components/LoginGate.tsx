@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { api } from '../api';
 import './LoginGate.css';
 
 interface LoginGateProps {
@@ -49,14 +50,7 @@ export function LoginGate({ children }: LoginGateProps) {
 
     // Log access to backend
     try {
-      await fetch('https://snfpnl.onrender.com/api/access-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          timestamp: new Date().toISOString()
-        })
-      });
+      await api.data.logAccess(name.trim());
     } catch (err) {
       // Don't block login if logging fails
       console.error('Failed to log access:', err);

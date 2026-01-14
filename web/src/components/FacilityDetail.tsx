@@ -6,6 +6,7 @@ import { PDFExport } from './export/PDFExport';
 import { TabPanel } from './ui/TabPanel';
 import { FacilityOverviewTab, FacilityFinancialsTab, FacilityAnalysisTab, FacilityReportsTab } from './facility/tabs';
 import { formatPeriod } from '../utils/dateFormatters';
+import { api } from '../api';
 import './FacilityDetail.css';
 
 interface FacilityDetailProps {
@@ -57,27 +58,19 @@ interface TrendData {
 }
 
 async function fetchFacility(id: string): Promise<Facility> {
-  const res = await fetch(`https://snfpnl.onrender.com/api/facilities/${id}`);
-  if (!res.ok) throw new Error('Failed to fetch facility');
-  return res.json();
+  return api.facilities.getFacility(id) as unknown as Promise<Facility>;
 }
 
 async function fetchKPIs(facilityId: string, periodId: string): Promise<KPIResult[]> {
-  const res = await fetch(`https://snfpnl.onrender.com/api/kpis/${facilityId}/${periodId}`);
-  if (!res.ok) throw new Error('Failed to fetch KPIs');
-  return res.json();
+  return api.kpis.getKPIs(facilityId, periodId) as unknown as Promise<KPIResult[]>;
 }
 
 async function fetchAnomalies(facilityId: string, periodId: string): Promise<Anomaly[]> {
-  const res = await fetch(`https://snfpnl.onrender.com/api/anomalies/${facilityId}/${periodId}`);
-  if (!res.ok) throw new Error('Failed to fetch anomalies');
-  return res.json();
+  return api.alerts.getAnomalies(facilityId, periodId) as unknown as Promise<Anomaly[]>;
 }
 
 async function fetchTrends(facilityId: string, kpiId: string): Promise<TrendData[]> {
-  const res = await fetch(`https://snfpnl.onrender.com/api/trends/${facilityId}/${kpiId}`);
-  if (!res.ok) throw new Error('Failed to fetch trends');
-  return res.json();
+  return api.kpis.getKPITrends(facilityId, kpiId) as unknown as Promise<TrendData[]>;
 }
 
 interface FacilityFinancials {
@@ -91,9 +84,7 @@ interface FacilityFinancials {
 }
 
 async function fetchFacilityFinancials(facilityId: string, periodId: string): Promise<FacilityFinancials | null> {
-  const res = await fetch(`https://snfpnl.onrender.com/api/financials/summary/${periodId}`);
-  if (!res.ok) throw new Error('Failed to fetch financials');
-  const data = await res.json();
+  const data = await api.dashboard.getFinancialSummary(periodId) as unknown as { facilities?: FacilityFinancials[] };
   return data.facilities?.find((f: FacilityFinancials) => f.facility_id === facilityId) || null;
 }
 
