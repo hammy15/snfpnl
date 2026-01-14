@@ -347,21 +347,21 @@
 }
 
 .kpi-section {
-  margin-bottom: 32px;
+  margin-bottom: 20px;
 }
 
 .section-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 1.125rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   color: var(--text-primary);
 }
 
 .chart-container {
-  height: 200px;
+  height: 180px;
 }
 
 .anomaly-list {
@@ -437,41 +437,41 @@
 
 /* Net Income Summary */
 .net-income-summary {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .net-income-card {
   display: flex;
-  gap: 32px;
+  gap: 24px;
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
   border: 1px solid rgba(102, 126, 234, 0.2);
-  border-radius: var(--radius-xl);
-  padding: 20px 32px;
+  border-radius: var(--radius-lg);
+  padding: 14px 20px;
 }
 
 .net-income-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .net-income-item.highlight {
-  padding: 12px 20px;
+  padding: 10px 16px;
   background: rgba(0, 217, 165, 0.1);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   border: 1px solid rgba(0, 217, 165, 0.2);
-  margin: -12px 0;
+  margin: -10px 0;
 }
 
 .net-income-label {
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .net-income-value {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-primary);
 }

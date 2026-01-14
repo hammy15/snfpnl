@@ -195,6 +195,64 @@
   border-radius: var(--radius-xl);
 }
 
+/* Packet Controls - Scope Selector */
+.packet-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-end;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.scope-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scope-selector > label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.scope-buttons {
+  display: flex;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+}
+
+.scope-buttons button {
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.scope-buttons button:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.scope-buttons button.active {
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
 .packet-header {
   margin-bottom: 24px;
 }
@@ -771,6 +829,23 @@
   .packet-options {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .packet-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .scope-buttons {
+    flex-wrap: wrap;
+  }
+
+  .scope-buttons button {
+    flex: 1;
+    min-width: calc(50% - 4px);
+    text-align: center;
+    padding: 8px 12px;
+    font-size: 0.8rem;
   }
 
   .option-group select,

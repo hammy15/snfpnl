@@ -116,11 +116,11 @@ h4 { font-size: 1rem; }
   background: var(--bg-glass);
   backdrop-filter: var(--blur-glass);
   -webkit-backdrop-filter: var(--blur-glass);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-glass);
-  padding: 24px;
+  padding: 16px;
   box-shadow: var(--shadow-card);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
 }
 
 .card:hover {
@@ -134,11 +134,11 @@ h4 { font-size: 1rem; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .card-title {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
   display: flex;
@@ -214,7 +214,7 @@ h4 { font-size: 1rem; }
 /* Grid layouts */
 .grid {
   display: grid;
-  gap: 24px;
+  gap: 12px;
 }
 
 .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
